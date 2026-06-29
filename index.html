@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>犯人は誰だ — マーダーミステリーシステム</title>
+
+<!-- Firebase (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0D0B0E;--surface:#17141A;--border:#2E2832;--borderl:#3D3645;
+  --red:#C0392B;--redd:#7B1F1A;--gold:#C9A84C;--goldd:#7A6230;
+  --parch:#E8DFD0;--parchdim:#A89880;--muted:#6B6070;--white:#F5F0F0;
+  --green:#2E7D52;--blue:#2C5F8A;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--parch);font-family:'Crimson Text',Georgia,serif}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--goldd);border-radius:3px}
+input,textarea,select{font-family:inherit}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── Layout ── */
+#app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto;height:56px;gap:12px}
+.players-bar{background:#17141A99;border-bottom:1px solid var(--border);padding:0 24px}
+.players-inner{display:flex;gap:8px;max-width:1200px;margin:0 auto;padding:8px 0;flex-wrap:wrap}
+.tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;overflow-x:auto}
+.tabs-inner{display:flex;max-width:1200px;margin:0 auto}
+.tab-btn{padding:14px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Cinzel',serif;font-size:11px;letter-spacing:.08em;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn.active{border-bottom-color:var(--gold);color:var(--gold)}
+.content{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:24px}
+.panel{display:none}.panel.active{display:block;animation:fadein .25s ease}
+
+/* ── Setup ── */
+#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.setup-box{width:100%;max-width:560px}
+.setup-title{text-align:center;margin-bottom:40px}
+.setup-title h1{font-family:'Cinzel',serif;font-size:36px;font-weight:700;color:var(--parch);line-height:1.2}
+.setup-title .sub{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.25em;color:var(--goldd);margin-bottom:12px}
+.divider{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px auto}
+.setup-title p{color:var(--muted);font-size:14px}
+.mode-tabs{display:flex;background:var(--bg);border-radius:8px;padding:4px;gap:4px;margin-bottom:20px}
+.mode-tab{flex:1;padding:10px;border-radius:6px;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:12px;font-weight:700;transition:all .2s;background:transparent;color:var(--muted)}
+.mode-tab.active{background:var(--gold);color:var(--bg)}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px}
+.label{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+
+/* ── Form elements ── */
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--parch);border-radius:4px;padding:8px 12px;font-size:14px;font-family:'Crimson Text',serif;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--gold)}
+.sel{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--parch);border-radius:4px;padding:8px 12px;font-size:14px;font-family:'Crimson Text',serif;outline:none}
+textarea.inp{resize:vertical}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:4px;border:1px solid var(--border);cursor:pointer;font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:.06em;transition:all .18s;background:var(--surface);color:var(--parch)}
+.btn.primary{background:var(--gold);color:var(--bg);border-color:var(--gold)}
+.btn.danger{background:var(--redd);color:var(--white);border-color:var(--red)}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.success{background:var(--green);color:var(--white);border-color:var(--green)}
+.btn.sm{padding:5px 14px;font-size:11px}
+.btn.full{width:100%;justify-content:center;padding:13px 0;font-size:15px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── GM toggle ── */
+.gm-toggle{display:flex;background:var(--bg);border-radius:6px;padding:3px;gap:3px}
+.gm-btn{padding:4px 14px;border-radius:4px;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:11px;font-weight:700;transition:all .2s;background:transparent;color:var(--muted)}
+.gm-btn.active{background:var(--gold);color:var(--bg)}
+
+/* ── Room code ── */
+.room-code{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px}
+.room-code .code{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--gold);letter-spacing:3px}
+.copy-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0}
+
+/* ── Sync dot ── */
+.sync{display:flex;align-items:center;gap:6px;font-size:11px}
+.sync-dot{width:7px;height:7px;border-radius:50%}
+.sync.ok .sync-dot{background:var(--green)}
+.sync.ok{color:var(--green)}
+.sync.busy .sync-dot{background:var(--gold);animation:pulse 1s infinite}
+.sync.busy{color:var(--gold)}
+
+/* ── Player pill ── */
+.player-pill{padding:5px 14px;border-radius:20px;font-size:12px}
+
+/* ── Timeline ── */
+.timeline{position:relative;padding-left:24px}
+.timeline-line{position:absolute;left:7px;top:0;bottom:0;width:2px;background:linear-gradient(var(--goldd),var(--border))}
+.tl-item{position:relative;margin-bottom:12px;animation:fadein .3s ease}
+.tl-dot{position:absolute;left:-20px;top:10px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.tag-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-family:'Cinzel',serif;letter-spacing:.08em}
+
+/* ── Alibi table ── */
+.alibi-wrap{overflow-x:auto}
+.alibi-table{width:100%;border-collapse:collapse;font-size:13px}
+.alibi-table th{padding:10px 8px;text-align:center;font-family:'Cinzel',serif;font-size:10px;color:var(--muted);border-bottom:1px solid var(--border);min-width:110px}
+.alibi-table th:first-child{text-align:left;min-width:110px}
+.alibi-table td{padding:4px;border-bottom:1px solid #2E283211}
+.alibi-table tr:nth-child(even){background:#0D0B0E55}
+.alibi-cell{width:100%;background:transparent;border:1px solid var(--border);color:var(--parch);border-radius:3px;padding:4px 6px;font-size:12px;font-family:'Crimson Text',serif;resize:none;outline:none}
+
+/* ── Chat ── */
+.chat-wrap{display:flex;flex-direction:column;height:500px}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px 0;display:flex;flex-direction:column;gap:10px}
+.chat-msg{padding:10px 14px;border-radius:8px;max-width:85%;animation:fadein .3s ease}
+.chat-msg.normal{background:var(--surface);border:1px solid var(--border);align-self:flex-start}
+.chat-msg.whisper{background:#7A623015;border:1px solid var(--goldd);align-self:flex-end}
+.chat-footer{border-top:1px solid var(--border);padding-top:12px}
+.chat-controls{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center}
+
+/* ── Vote ── */
+.vote-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px}
+.vote-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}
+.suspect-btn{padding:5px 12px;border-radius:20px;border:none;cursor:pointer;font-size:12px;font-family:'Crimson Text',serif;transition:background .2s;color:var(--white)}
+.vote-bar-wrap{flex:1;background:var(--bg);border-radius:4px;height:22px;overflow:hidden}
+.vote-bar{height:100%;border-radius:4px;transition:width 1s ease}
+.winner-box{background:#7B1F1A33;border:1px solid var(--red);border-radius:8px;padding:24px;text-align:center;margin-top:20px;animation:fadein .5s ease}
+
+/* ── Timer ── */
+.timer-display{font-family:'JetBrains Mono',monospace;font-size:64px;font-weight:500;letter-spacing:4px;text-align:center;line-height:1;margin-bottom:20px;transition:color .3s}
+.preset-btns{display:flex;justify-content:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.timer-controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+/* ── Docs ── */
+.docs-layout{display:grid;grid-template-columns:260px 1fr;gap:16px;min-height:480px}
+.doc-item{padding:10px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--border);transition:all .15s;background:var(--surface);margin-bottom:6px;animation:fadein .3s ease}
+.doc-item.selected{background:#7A623022;border-color:var(--gold)}
+.doc-viewer{height:100%;display:flex;flex-direction:column}
+
+/* ── Player rows ── */
+.player-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+
+/* ── Responsive ── */
+@media(max-width:700px){
+  .docs-layout{grid-template-columns:1fr}
+  .topbar-inner{flex-wrap:wrap;height:auto;padding:8px 0;gap:8px}
+  .chat-controls{grid-template-columns:1fr auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SETUP SCREEN ══════════ -->
+<div id="setup">
+  <div class="setup-box">
+    <div class="setup-title">
+      <div class="sub">◆ MURDER MYSTERY SYSTEM ◆</div>
+      <h1>犯人は誰だ</h1>
+      <div class="divider"></div>
+      <p>マーダーミステリー リアルタイム進行管理</p>
+    </div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="switchSetupMode('create')">🎲 ルームを作成</button>
+      <button class="mode-tab" onclick="switchSetupMode('join')">🚪 ルームに参加</button>
+    </div>
+
+    <!-- CREATE -->
+    <div id="create-form" class="card">
+      <div style="margin-bottom:16px">
+        <div class="label">シナリオタイトル</div>
+        <input class="inp" id="s-title" placeholder="例：嵐の館の殺人事件">
+      </div>
+      <div style="margin-bottom:16px">
+        <div class="label">GMモード</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn" id="gm-btn" onclick="setGMMode('gm')" style="flex:1;justify-content:center;border-color:var(--gold);background:#7A623022;color:var(--gold)">GM あり</button>
+          <button class="btn" id="gmless-btn" onclick="setGMMode('gmless')" style="flex:1;justify-content:center">GMレス</button>
+        </div>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="label" style="margin:0">プレイヤー設定</div>
+          <button class="btn sm ghost" onclick="addPlayer()">＋ 追加</button>
+        </div>
+        <div id="player-list"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">左: プレイヤー名　右: キャラクター名（任意）</div>
+      </div>
+      <button class="btn primary full" onclick="createRoom()">ルームを作成する</button>
+    </div>
+
+    <!-- JOIN -->
+    <div id="join-form" class="card" style="display:none">
+      <div style="margin-bottom:16px">
+        <div class="label">ルームコード（GMから受け取ったコード）</div>
+        <input class="inp" id="j-code" placeholder="例：ABC123" style="text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:18px;letter-spacing:4px">
+      </div>
+      <div id="join-error" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none"></div>
+      <button class="btn primary full" onclick="joinRoom()">参加する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MAIN APP ══════════ -->
+<div id="app" style="display:none">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="font-family:'Cinzel',serif;font-size:11px;color:var(--goldd);letter-spacing:.12em">◆ MMSystem</span>
+        <span style="width:1px;height:20px;background:var(--border);display:inline-block"></span>
+        <span id="app-title" style="font-size:14px;font-weight:600"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div class="room-code">
+          <span style="font-size:10px;color:var(--muted);font-family:'Cinzel',serif;letter-spacing:.1em">ROOM</span>
+          <span class="code" id="room-code-display"></span>
+          <button class="copy-btn" onclick="copyCode()" title="コピー">📋</button>
+        </div>
+        <div class="sync busy" id="sync-indicator">
+          <div class="sync-dot"></div>
+          <span id="sync-text">接続中…</span>
+        </div>
+        <div class="gm-toggle" id="gm-toggle" style="display:none">
+          <button class="gm-btn active" id="gm-view-btn" onclick="setView('gm')">GM</button>
+          <button class="gm-btn" id="pl-view-btn" onclick="setView('pl')">PL</button>
+        </div>
+        <button class="btn sm ghost" onclick="exitRoom()">退出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Players bar -->
+  <div class="players-bar">
+    <div class="players-inner" id="players-bar"></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tabs-inner">
+      <button class="tab-btn active" onclick="showTab('docs')">📄 資料配布</button>
+      <button class="tab-btn" onclick="showTab('timeline')">⏳ 時系列メモ</button>
+      <button class="tab-btn" onclick="showTab('alibi')">🗓 アリバイ表</button>
+      <button class="tab-btn" onclick="showTab('chat')">💬 会話ログ</button>
+      <button class="tab-btn" onclick="showTab('vote')">🗳 投票</button>
+      <button class="tab-btn" onclick="showTab('timer')">⏱ タイマー</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- DOCS -->
+    <div class="panel active" id="panel-docs">
+      <h2 style="font-family:'Cinzel',serif;font-size:20px;color:var(--parch);margin-bottom:20px">📄 資料配布</h2>
+      <div class="docs-layout">
+        <div>
+          <div id="pl-char-select" style="margin-bottom:12px;display:none">
+            <div class="label">あなたのキャラクター</div>
+            <select class="sel" id="viewing-player" onchange="renderDocs()"></select>
+          </div>
+          <div id="gm-add-btn-wrap">
+            <button class="btn primary full" style="margin-bottom:12px" onclick="showAddDoc()">＋ 資料を追加</button>
+          </div>
+          <div id="doc-list"></div>
+        </div>
+        <div id="doc-viewer-area">
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-style:italic">左のリストから資料を選択してください</div>
+        </div>
+      </div>
+
+      <!-- Add doc form -->
+      <div id="add-doc-form" class="card" style="display:none;margin-top:16px">
+        <div style="font-family:'Cinzel',serif;font-size:14px;color:var(--gold);margin-bottom:16px;font-weight:600">新しい資料を追加</div>
+        <div style="margin-bottom:12px"><div class="label">タイトル</div><input class="inp" id="doc-title" placeholder="資料のタイトル"></div>
+        <div style="margin-bottom:12px">
+          <div class="label">配布先</div>
+          <select class="sel" id="doc-target"></select>
+        </div>
+        <div style="margin-bottom:12px">
+          <div class="label">ファイル（PDF / テキスト）</div>
+          <input type="file" id="doc-file" accept=".pdf,.txt,.md" onchange="handleDocFile()" style="color:var(--parchdim);font-size:13px">
+        </div>
+        <div style="margin-bottom:16px"><div class="label">またはテキスト入力</div><textarea class="inp" id="doc-content" rows="6" placeholder="内容を直接入力…"></textarea></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn primary" onclick="saveDoc()">保存</button>
+          <button class="btn ghost" onclick="hideAddDoc()">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="panel" id="panel-timeline">
+      <h2 style="font-family:'Cinzel',serif;font-size:20px;color:var(--parch);margin-bottom:20px">⏳ 時系列メモ</h2>
+      <div class="card" style="margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:110px 1fr 1fr;gap:10px;margin-bottom:10px">
+          <div><div class="label">時刻</div><input class="inp" id="tl-time" placeholder="10:30"></div>
+          <div>
+            <div class="label">キャラクター</div>
+            <select class="sel" id="tl-player"><option value="">全員 / 不明</option></select>
+          </div>
+          <div>
+            <div class="label">タグ</div>
+            <select class="sel" id="tl-tag">
+              <option>情報</option><option>アリバイ</option><option>証拠</option><option>疑惑</option><option>重要</option><option>その他</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <textarea class="inp" id="tl-content" rows="2" placeholder="内容を入力…" style="flex:1"></textarea>
+          <button class="btn primary" onclick="addTimelineEntry()">＋追加</button>
+        </div>
+      </div>
+      <div class="timeline"><div class="timeline-line"></div><div id="tl-list"></div></div>
+    </div>
+
+    <!-- ALIBI -->
+    <div class="panel" id="panel-alibi">
+      <h2 style="font-family:'Cinzel',serif;font-size:20px;color:var(--parch);margin-bottom:20px">🗓 アリバイ表</h2>
+      <div class="alibi-wrap">
+        <table class="alibi-table">
+          <thead id="alibi-head"></thead>
+          <tbody id="alibi-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="panel" id="panel-chat">
+      <h2 style="font-family:'Cinzel',serif;font-size:20px;color:var(--parch);margin-bottom:20px">💬 会話ログ</h2>
+      <div class="card">
+        <div class="chat-wrap">
+          <div class="chat-msgs" id="chat-msgs"><div style="color:var(--muted);font-size:14px;font-style:italic;text-align:center;margin-top:40px">会話ログはありません</div></div>
+          <div class="chat-footer">
+            <div class="chat-controls">
+              <select class="sel" id="chat-speaker" style="font-size:13px"></select>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;cursor:pointer;white-space:nowrap">
+                  <input type="checkbox" id="chat-whisper" onchange="toggleWhisper()"> 囁き
+                </label>
+                <select class="sel" id="chat-target" style="display:none;font-size:12px"></select>
+              </div>
+              <button class="btn primary sm" onclick="sendChat()">送信</button>
+            </div>
+            <textarea class="inp" id="chat-content" rows="2" placeholder="発言内容…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VOTE -->
+    <div class="panel" id="panel-vote">
+      <h2 style="font-family:'Cinzel',serif;font-size:20px;color:var(--parch);margin-bottom:20px">🗳 投票・犯人推理</h2>
+      <div class="card">
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+          <button class="btn sm" id="vote-open-btn" onclick="setVotePhase('open')">投票受付中</button>
+          <button class="btn sm danger" onclick="setVotePhase('closed')">投票締切</button>
+          <button class="btn sm success" onclick="setVotePhase('revealed')">結果発表</button>
+          <button class="btn sm ghost" onclick="resetVote()">リセット</button>
+          <span id="vote-count" style="font-size:12px;color:var(--muted)"></span>
+        </div>
+        <div id="vote-input-area"></div>
+        <div id="vote-result-area"></div>
+      </div>
+    </div>
+
+    <!-- TIMER -->
+    <div class="panel" id="panel-timer">
+      <h2 style="font-family:'Cinzel',serif;font-size:20px;color:var(--parch);margin-bottom:20px">⏱ タイマー</h2>
+      <div class="card" style="max-width:480px;margin:0 auto">
+        <div class="timer-display" id="timer-display">00:00</div>
+        <div class="preset-btns" id="timer-presets"></div>
+        <div class="timer-controls">
+          <button class="btn primary" id="timer-start-btn" onclick="toggleTimer()">▶ 開始</button>
+          <button class="btn ghost" onclick="resetTimer()">↺ リセット</button>
+          <button class="btn sm ghost" id="timer-mode-btn" onclick="toggleTimerMode()">▼ カウントダウン</button>
+        </div>
+        <div id="timer-alert" style="text-align:center;margin-top:12px;color:var(--red);font-family:'Cinzel',serif;font-size:12px;letter-spacing:2px;display:none;animation:pulse 1s infinite"></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+// ══════════════════════════════════════════
+//  FIREBASE CONFIG
+//  ↓↓↓ ここを自分の設定に書き換えてください ↓↓↓
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "ここに貼り付け",
+  authDomain: "ここに貼り付け",
+  databaseURL: "ここに貼り付け",
+  projectId: "ここに貼り付け",
+  storageBucket: "ここに貼り付け",
+  messagingSenderId: "ここに貼り付け",
+  appId: "ここに貼り付け"
+};
+// ══════════════════════════════════════════
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ── State ──
+let roomId = null;
+let roomData = null;
+let isGM = false;
+let isGMView = true;
+let selectedDoc = null;
+let timerInterval = null;
+let timerSec = 0;
+let timerRunning = false;
+let timerCountdown = false;
+let timerPreset = 0;
+let gmMode = 'gm';
+let players = [];
+let setupMode = 'create';
+let playerList = [
+  {id:'p1',name:'プレイヤーA',charName:''},
+  {id:'p2',name:'プレイヤーB',charName:''},
+];
+
+const COLORS = ['#C0392B','#2C5F8A','#2E7D52','#C9A84C','#7B2D8B','#C97B2C','#2C8A7A','#6B4C9A'];
+const TAG_COLORS = {情報:'#2C5F8A',アリバイ:'#2E7D52',証拠:'#C9A84C',疑惑:'#C0392B',重要:'#7B1F1A',その他:'#6B6070'};
+const SLOTS = ['〜10:00','10:00〜11:00','11:00〜12:00','12:00〜13:00','13:00〜14:00','14:00〜'];
+
+// ── Setup UI ──
+function switchSetupMode(mode){
+  setupMode = mode;
+  document.querySelectorAll('.mode-tab').forEach((b,i)=>b.classList.toggle('active',i===(mode==='create'?0:1)));
+  document.getElementById('create-form').style.display = mode==='create'?'block':'none';
+  document.getElementById('join-form').style.display = mode==='join'?'block':'none';
+}
+
+let gmModeVal = 'gm';
+function setGMMode(v){
+  gmModeVal = v;
+  document.getElementById('gm-btn').style.cssText = v==='gm'?'flex:1;justify-content:center;border-color:var(--gold);background:#7A623022;color:var(--gold)':'flex:1;justify-content:center';
+  document.getElementById('gmless-btn').style.cssText = v==='gmless'?'flex:1;justify-content:center;border-color:var(--gold);background:#7A623022;color:var(--gold)':'flex:1;justify-content:center';
+}
+
+function renderPlayerList(){
+  const el = document.getElementById('player-list');
+  el.innerHTML = playerList.map((p,i)=>`
+    <div class="player-row">
+      <input class="inp" value="${p.name}" onchange="playerList[${i}].name=this.value" placeholder="プレイヤー${i+1}">
+      <input class="inp" value="${p.charName}" onchange="playerList[${i}].charName=this.value" placeholder="キャラクター名（任意）">
+      <button class="btn sm ghost" onclick="removePlayer(${i})" ${playerList.length<=2?'disabled':''}>✕</button>
+    </div>`).join('');
+}
+function addPlayer(){
+  if(playerList.length>=8)return;
+  const names=['A','B','C','D','E','F','G','H'];
+  playerList.push({id:'p'+Date.now(),name:'プレイヤー'+names[playerList.length],charName:''});
+  renderPlayerList();
+}
+function removePlayer(i){
+  if(playerList.length<=2)return;
+  playerList.splice(i,1);
+  renderPlayerList();
+}
+renderPlayerList();
+
+// ── Create / Join ──
+async function createRoom(){
+  const title = document.getElementById('s-title').value.trim();
+  if(!title||playerList.length<2){alert('タイトルとプレイヤーを入力してください');return;}
+  const code = Math.random().toString(36).substr(2,6).toUpperCase();
+  const data = {title,gmMode:gmModeVal,players:playerList,createdAt:Date.now(),
+    timer:{sec:0,running:false,isCountdown:false,presetMin:0},
+    vote:{phase:'open'}};
+  await db.ref('rooms/'+code).set(data);
+  enterRoom(code, data, true);
+}
+
+async function joinRoom(){
+  const code = document.getElementById('j-code').value.toUpperCase().trim();
+  if(!code)return;
+  const snap = await db.ref('rooms/'+code).once('value');
+  const data = snap.val();
+  if(!data){
+    const e=document.getElementById('join-error');
+    e.textContent='ルームが見つかりません。コードを確認してください。';
+    e.style.display='block';
+    return;
+  }
+  enterRoom(code, data, false);
+}
+
+function enterRoom(code, data, asGM){
+  roomId = code;
+  roomData = data;
+  isGM = asGM;
+  isGMView = asGM && data.gmMode==='gm';
+  players = data.players || [];
+  gmMode = data.gmMode;
+
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app-title').textContent = data.title;
+  document.getElementById('room-code-display').textContent = code;
+
+  if(gmMode==='gm') document.getElementById('gm-toggle').style.display='flex';
+  setView(isGMView?'gm':'pl');
+
+  renderPlayersBar();
+  renderAlibiTable();
+  populateSelects();
+  subscribeAll();
+}
+
+function exitRoom(){
+  if(timerInterval) clearInterval(timerInterval);
+  roomId=null; roomData=null;
+  document.getElementById('setup').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+// ── View toggle ──
+function setView(v){
+  isGMView = v==='gm';
+  document.getElementById('gm-view-btn').classList.toggle('active',isGMView);
+  document.getElementById('pl-view-btn').classList.toggle('active',!isGMView);
+  document.getElementById('gm-add-btn-wrap').style.display = isGMView?'block':'none';
+  document.getElementById('pl-char-select').style.display = isGMView?'none':'block';
+  renderDocs();
+}
+
+// ── Players bar ──
+function renderPlayersBar(){
+  document.getElementById('players-bar').innerHTML = players.map((p,i)=>`
+    <div class="player-pill" style="background:${COLORS[i%COLORS.length]}22;border:1px solid ${COLORS[i%COLORS.length]}55">
+      <span style="color:${COLORS[i%COLORS.length]};font-weight:700">${p.name}</span>
+      ${p.charName?`<span style="color:var(--muted);margin-left:6px">「${p.charName}」</span>`:''}
+    </div>`).join('');
+}
+
+// ── Populate selects ──
+function populateSelects(){
+  const charOpts = players.map(p=>`<option value="${p.id}">${p.charName||p.name}</option>`).join('');
+  const nameOpts = players.map(p=>`<option value="${p.charName||p.name}">${p.charName||p.name}</option>`).join('');
+  document.getElementById('viewing-player').innerHTML = '<option value="">選択してください</option>'+charOpts;
+  document.getElementById('tl-player').innerHTML = '<option value="">全員 / 不明</option>'+nameOpts;
+  document.getElementById('chat-speaker').innerHTML = '<option value="">発言者を選択</option><option value="GM">GM</option>'+nameOpts;
+  document.getElementById('chat-target').innerHTML = '<option value="">対象</option>'+nameOpts;
+  const docTarget = document.getElementById('doc-target');
+  docTarget.innerHTML = '<option value="all">全員</option>'+charOpts;
+}
+
+// ── Sync indicator ──
+function setSynced(ok){
+  const el = document.getElementById('sync-indicator');
+  const txt = document.getElementById('sync-text');
+  el.className = 'sync '+(ok?'ok':'busy');
+  txt.textContent = ok?'同期済':'同期中…';
+}
+
+// ── Tab switching ──
+function showTab(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── Room code copy ──
+function copyCode(){
+  navigator.clipboard?.writeText(roomId);
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent='✅'; setTimeout(()=>btn.textContent='📋',1500);
+}
+
+// ══════════ FIREBASE SUBSCRIPTIONS ══════════
+function subscribeAll(){
+  db.ref('rooms/'+roomId).on('value', snap=>{
+    roomData = snap.val(); setSynced(true);
+  });
+  db.ref('rooms/'+roomId+'/timer').on('value', snap=>{
+    const d = snap.val(); if(!d)return;
+    if(!timerRunning){
+      timerSec = d.sec||0; timerCountdown = d.isCountdown||false; timerPreset = d.presetMin||0;
+      renderTimerDisplay();
+    }
+    if(d.running !== timerRunning) syncTimerRunning(d.running);
+  });
+  db.ref('rooms/'+roomId+'/vote').on('value', snap=>{
+    renderVote(snap.val()||{});
+  });
+  db.ref('rooms/'+roomId+'/chat').on('value', snap=>{
+    renderChat(snap.val()||{});
+  });
+  db.ref('rooms/'+roomId+'/timeline').on('value', snap=>{
+    renderTimeline(snap.val()||{});
+  });
+  db.ref('rooms/'+roomId+'/docs').on('value', snap=>{
+    renderDocs(snap.val()||{});
+  });
+  db.ref('rooms/'+roomId+'/alibi').on('value', snap=>{
+    updateAlibiCells(snap.val()||{});
+  });
+  renderTimerPresets();
+}
+
+// ══════════ DOCS ══════════
+let docsData = {};
+function renderDocs(data){
+  if(data!==undefined) docsData = data;
+  const docs = Object.entries(docsData).map(([k,v])=>({...v,key:k}));
+  const viewingPid = document.getElementById('viewing-player')?.value;
+  const visible = isGMView ? docs : docs.filter(d=>d.targetId==='all'||d.targetId===viewingPid);
+  document.getElementById('doc-list').innerHTML = visible.length===0
+    ? `<div style="color:var(--muted);font-size:13px;font-style:italic;padding:12px;text-align:center">資料がありません</div>`
+    : visible.map(d=>`
+      <div class="doc-item ${selectedDoc===d.key?'selected':''}" onclick="selectDoc('${d.key}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:${selectedDoc===d.key?'var(--gold)':'var(--parch)'};margin-bottom:3px">${d.fileType==='pdf'?'📄':'📝'} ${d.title}</div>
+            <div style="font-size:11px;color:var(--muted)">${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.charName||'指定PL'}</div>
+          </div>
+          ${isGMView?`<button onclick="event.stopPropagation();deleteDoc('${d.key}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px">✕</button>`:''}
+        </div>
+      </div>`).join('');
+}
+
+function selectDoc(key){
+  selectedDoc = key;
+  const d = docsData[key]; if(!d)return;
+  renderDocs();
+  const area = document.getElementById('doc-viewer-area');
+  area.innerHTML = `
+    <div class="doc-viewer card">
+      <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+        <div style="font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold)">${d.title}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">配布先: ${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.charName||'指定PL'}</div>
+      </div>
+      <div style="flex:1;overflow-y:auto">
+        ${d.fileType==='pdf'&&d.content?.startsWith('data:')
+          ?`<iframe src="${d.content}" style="width:100%;height:480px;border:none;border-radius:4px"></iframe>`
+          :`<div style="font-size:15px;line-height:1.8;white-space:pre-wrap">${d.content||'<span style="color:var(--muted);font-style:italic">内容がありません</span>'}</div>`}
+      </div>
+    </div>`;
+}
+
+function showAddDoc(){ document.getElementById('add-doc-form').style.display='block'; }
+function hideAddDoc(){ document.getElementById('add-doc-form').style.display='none'; }
+
+function handleDocFile(){
+  const file = document.getElementById('doc-file').files[0]; if(!file)return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    document.getElementById('doc-title').value = file.name.replace(/\.[^.]+$/,'');
+    document.getElementById('doc-content').value = file.type==='application/pdf'?ev.target.result:ev.target.result;
+    document.getElementById('doc-content').dataset.fileType = file.type==='application/pdf'?'pdf':'text';
+    document.getElementById('doc-content').dataset.fileData = ev.target.result;
+  };
+  if(file.type==='application/pdf') reader.readAsDataURL(file); else reader.readAsText(file);
+}
+
+function saveDoc(){
+  const title = document.getElementById('doc-title').value.trim();
+  if(!title)return;
+  const contentEl = document.getElementById('doc-content');
+  const fileType = contentEl.dataset.fileType||'text';
+  const content = contentEl.dataset.fileData||contentEl.value;
+  const targetId = document.getElementById('doc-target').value;
+  db.ref('rooms/'+roomId+'/docs').push({title,content,targetId,fileType,ts:Date.now()});
+  document.getElementById('doc-title').value='';
+  document.getElementById('doc-content').value='';
+  delete document.getElementById('doc-content').dataset.fileType;
+  delete document.getElementById('doc-content').dataset.fileData;
+  hideAddDoc();
+}
+
+function deleteDoc(key){
+  db.ref('rooms/'+roomId+'/docs/'+key).remove();
+  if(selectedDoc===key){selectedDoc=null;document.getElementById('doc-viewer-area').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-style:italic">左のリストから資料を選択してください</div>';}
+}
+
+// ══════════ TIMELINE ══════════
+function addTimelineEntry(){
+  const time = document.getElementById('tl-time').value.trim();
+  const content = document.getElementById('tl-content').value.trim();
+  if(!time||!content)return;
+  const player = document.getElementById('tl-player').value;
+  const tag = document.getElementById('tl-tag').value;
+  db.ref('rooms/'+roomId+'/timeline').push({time,content,player,tag,ts:Date.now()});
+  document.getElementById('tl-content').value='';
+}
+
+function renderTimeline(data){
+  const entries = Object.entries(data).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.time.localeCompare(b.time));
+  const el = document.getElementById('tl-list');
+  if(entries.length===0){el.innerHTML='<div style="color:var(--muted);font-size:14px;font-style:italic">まだ記録がありません</div>';return;}
+  el.innerHTML = entries.map(e=>`
+    <div class="tl-item">
+      <div class="tl-dot" style="background:${TAG_COLORS[e.tag]||'var(--muted)'}"></div>
+      <div class="card" style="padding:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="flex:1">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--gold);font-weight:600">${e.time}</span>
+              ${e.player?`<span style="font-size:12px;color:var(--parchdim)">@ ${e.player}</span>`:''}
+              <span class="tag-badge" style="background:${TAG_COLORS[e.tag]||'var(--muted)'}22;color:${TAG_COLORS[e.tag]||'var(--muted)'}">${e.tag}</span>
+            </div>
+            <div style="font-size:14px;line-height:1.6">${e.content}</div>
+          </div>
+          <button onclick="db.ref('rooms/${roomId}/timeline/${e.key}').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;margin-left:8px">✕</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════ ALIBI ══════════
+let alibiCells = {};
+function renderAlibiTable(){
+  const head = document.getElementById('alibi-head');
+  const body = document.getElementById('alibi-body');
+  head.innerHTML = '<tr><th style="text-align:left">キャラクター</th>'+SLOTS.map(s=>`<th>${s}</th>`).join('')+'</tr>';
+  body.innerHTML = players.map((p,i)=>`
+    <tr>
+      <td style="padding:8px 14px;color:var(--gold);font-weight:600;white-space:nowrap">${p.charName||p.name}</td>
+      ${SLOTS.map(s=>`<td style="padding:4px"><textarea class="alibi-cell" rows="2" data-pid="${p.id}" data-slot="${s}" onchange="saveAlibi(this)" placeholder="—"></textarea></td>`).join('')}
+    </tr>`).join('');
+}
+
+function saveAlibi(el){
+  const key = el.dataset.pid+'___'+el.dataset.slot.replace(/[^a-zA-Z0-9]/g,'_');
+  db.ref('rooms/'+roomId+'/alibi/'+key).set(el.value);
+}
+
+function updateAlibiCells(data){
+  alibiCells = data;
+  document.querySelectorAll('.alibi-cell').forEach(el=>{
+    const key = el.dataset.pid+'___'+el.dataset.slot.replace(/[^a-zA-Z0-9]/g,'_');
+    if(data[key]!==undefined && el!==document.activeElement) el.value = data[key];
+  });
+}
+
+// ══════════ CHAT ══════════
+function toggleWhisper(){
+  const on = document.getElementById('chat-whisper').checked;
+  document.getElementById('chat-target').style.display = on?'inline-block':'none';
+}
+
+function sendChat(){
+  const speaker = document.getElementById('chat-speaker').value;
+  const content = document.getElementById('chat-content').value.trim();
+  if(!speaker||!content)return;
+  const isWhisper = document.getElementById('chat-whisper').checked;
+  const target = document.getElementById('chat-target').value;
+  const time = new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+  db.ref('rooms/'+roomId+'/chat').push({speaker,content,isWhisper,target,time,ts:Date.now()});
+  document.getElementById('chat-content').value='';
+}
+
+function renderChat(data){
+  const msgs = Object.entries(data).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
+  const el = document.getElementById('chat-msgs');
+  if(msgs.length===0){el.innerHTML='<div style="color:var(--muted);font-size:14px;font-style:italic;text-align:center;margin-top:40px">会話ログはありません</div>';return;}
+  el.innerHTML = msgs.map(m=>`
+    <div class="chat-msg ${m.isWhisper?'whisper':'normal'}">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+        <span style="font-weight:700;color:var(--gold);font-size:13px">${m.speaker}</span>
+        ${m.isWhisper?`<span style="font-size:10px;color:var(--goldd);font-family:'Cinzel',serif">→ ${m.target}（囁き）</span>`:''}
+        <span style="font-size:11px;color:var(--muted);margin-left:auto">${m.time}</span>
+      </div>
+      <div style="font-size:14px;line-height:1.6">${m.content}</div>
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+// ══════════ VOTE ══════════
+let voteData = {};
+function renderVote(data){
+  voteData = data;
+  const votes = data.votes||{};
+  const phase = data.phase||'open';
+  document.getElementById('vote-open-btn').style.cssText = phase==='open'?'background:var(--gold);color:var(--bg);border-color:var(--gold)':'';
+  document.getElementById('vote-count').textContent = `${Object.keys(votes).length}/${players.length} 投票済`;
+
+  // Input area
+  const inputArea = document.getElementById('vote-input-area');
+  if(phase!=='revealed'){
+    inputArea.innerHTML = `<div class="vote-grid">${players.map(voter=>`
+      <div class="vote-card">
+        <div style="font-weight:600;color:var(--gold);margin-bottom:10px;font-size:14px">
+          ${voter.charName||voter.name}
+          ${votes[voter.id]?'<span style="color:var(--green);font-size:11px;margin-left:8px">✓</span>':''}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${players.filter(p=>p.id!==voter.id).map(s=>`
+            <button class="suspect-btn" onclick="castVote('${voter.id}','${s.id}')" ${phase==='closed'?'disabled':''} style="background:${votes[voter.id]===s.id?'var(--red)':'var(--border)'}">
+              ${s.charName||s.name}
+            </button>`).join('')}
+        </div>
+      </div>`).join('')}</div>`;
+  } else {
+    inputArea.innerHTML='';
+  }
+
+  // Result area
+  const resultArea = document.getElementById('vote-result-area');
+  if(phase==='revealed'){
+    const tally = {};
+    players.forEach(p=>{tally[p.id]=0;});
+    Object.values(votes).forEach(v=>{if(tally[v]!==undefined)tally[v]++;});
+    const maxV = Math.max(...Object.values(tally),0);
+    const sorted = [...players].sort((a,b)=>tally[b.id]-tally[a.id]);
+    const criminals = players.filter(p=>tally[p.id]===maxV&&maxV>0);
+    resultArea.innerHTML = `
+      <div style="animation:fadein .5s ease">
+        ${sorted.map(p=>`
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <div style="width:140px;color:${tally[p.id]===maxV?'var(--gold)':'var(--parch)'};font-weight:${tally[p.id]===maxV?700:400};font-size:15px">${p.charName||p.name}</div>
+            <div class="vote-bar-wrap"><div class="vote-bar" style="width:${players.length>1?(tally[p.id]/(players.length-1))*100:0}%;background:${tally[p.id]===maxV?'linear-gradient(90deg,var(--redd),var(--red))':'var(--border)'}"></div></div>
+            <div style="width:30px;text-align:right;color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600">${tally[p.id]}</div>
+          </div>`).join('')}
+        ${criminals.length>0&&maxV>0?`
+          <div class="winner-box">
+            <div style="font-family:'Cinzel',serif;font-size:12px;color:var(--red);letter-spacing:.15em;margin-bottom:8px">最多得票</div>
+            <div style="font-size:28px;font-weight:700;color:var(--gold)">${criminals.map(c=>c.charName||c.name).join(' / ')}</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:4px">${maxV}票</div>
+          </div>`:''}
+      </div>`;
+  } else {
+    resultArea.innerHTML='';
+  }
+}
+
+function castVote(voterId, suspectId){
+  db.ref('rooms/'+roomId+'/vote/votes/'+voterId).set(suspectId);
+}
+function setVotePhase(phase){
+  db.ref('rooms/'+roomId+'/vote/phase').set(phase);
+}
+function resetVote(){
+  db.ref('rooms/'+roomId+'/vote').set({votes:{},phase:'open'});
+}
+
+// ══════════ TIMER ══════════
+function renderTimerPresets(){
+  const presets=[5,10,15,20,30,60];
+  document.getElementById('timer-presets').innerHTML = presets.map(p=>`
+    <button class="btn sm ghost" onclick="setTimerPreset(${p})">${p}分</button>`).join('');
+}
+
+function setTimerPreset(min){
+  timerPreset=min; timerCountdown=true; timerSec=min*60;
+  if(timerRunning){clearInterval(timerInterval);timerRunning=false;}
+  db.ref('rooms/'+roomId+'/timer').update({presetMin:min,isCountdown:true,sec:timerSec,running:false});
+  renderTimerDisplay();
+}
+
+function fmt(s){
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;
+  return h>0?[h,m,sc].map(n=>String(n).padStart(2,'0')).join(':'):[m,sc].map(n=>String(n).padStart(2,'0')).join(':');
+}
+
+function renderTimerDisplay(){
+  const el=document.getElementById('timer-display');
+  const alert=document.getElementById('timer-alert');
+  const isAlert=timerCountdown&&timerSec<=60&&timerSec>0&&timerRunning;
+  el.textContent=fmt(timerSec);
+  el.style.color=isAlert?'var(--red)':'var(--gold)';
+  el.style.textShadow=`0 0 24px ${isAlert?'var(--red)':'var(--goldd)'}`;
+  alert.style.display=isAlert?'block':'none';
+  if(isAlert)alert.textContent=`⚠ 残り${Math.ceil(timerSec/60)}分以内`;
+  document.getElementById('timer-start-btn').textContent=timerRunning?'⏸ 一時停止':'▶ 開始';
+  document.getElementById('timer-start-btn').className='btn '+(timerRunning?'danger':'primary');
+  document.getElementById('timer-mode-btn').textContent=timerCountdown?'▲ カウントアップ':'▼ カウントダウン';
+}
+
+function toggleTimer(){
+  timerRunning=!timerRunning;
+  db.ref('rooms/'+roomId+'/timer').update({running:timerRunning});
+  if(timerRunning) startLocalTimer(); else {clearInterval(timerInterval);timerInterval=null;}
+  renderTimerDisplay();
+}
+
+function syncTimerRunning(running){
+  if(running===timerRunning)return;
+  timerRunning=running;
+  if(running) startLocalTimer(); else {clearInterval(timerInterval);timerInterval=null;}
+  renderTimerDisplay();
+}
+
+function startLocalTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    if(timerCountdown){
+      if(timerSec<=0){clearInterval(timerInterval);timerRunning=false;db.ref('rooms/'+roomId+'/timer').update({running:false,sec:0});renderTimerDisplay();return;}
+      timerSec--;
+    } else {timerSec++;}
+    db.ref('rooms/'+roomId+'/timer/sec').set(timerSec);
+    renderTimerDisplay();
+  },1000);
+}
+
+function resetTimer(){
+  clearInterval(timerInterval);timerInterval=null;timerRunning=false;
+  timerSec=timerPreset?timerPreset*60:0;
+  db.ref('rooms/'+roomId+'/timer').update({sec:timerSec,running:false});
+  renderTimerDisplay();
+}
+
+function toggleTimerMode(){
+  timerCountdown=!timerCountdown;
+  clearInterval(timerInterval);timerInterval=null;timerRunning=false;timerSec=0;
+  db.ref('rooms/'+roomId+'/timer').update({isCountdown:timerCountdown,sec:0,running:false});
+  renderTimerDisplay();
+}
+</script>
+</body>
+</html>
