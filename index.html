@@ -239,12 +239,18 @@ textarea.inp{resize:vertical}
     <div class="timerbar-inner">
       <div class="timer-disp" id="timer-disp">00:00</div>
       <div class="t-presets" id="t-presets"></div>
-      <div class="t-btns">
+      <!-- カスタム時間入力 (GMのみ) -->
+      <div id="t-custom-wrap" style="display:none;align-items:center;gap:5px">
+        <input id="t-custom-inp" type="number" min="1" max="999" placeholder="分" style="width:60px;padding:3px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--text);outline:none">
+        <button class="btn sm ghost" onclick="setCustomPreset()">設定</button>
+      </div>
+      <div class="t-btns" id="t-btns" style="display:none">
         <button class="btn sm primary" id="t-start-btn" onclick="toggleTimer()">▶ 開始</button>
         <button class="btn sm ghost" onclick="resetTimer()">↺</button>
         <button class="btn sm ghost" id="t-mode-btn" onclick="toggleTimerMode()">▼ CD</button>
       </div>
       <div id="t-alert" style="font-size:12px;font-weight:600;color:var(--red);display:none;animation:pulse .8s infinite">⚠ 残り時間わずか</div>
+      <button class="btn sm ghost" onclick="popoutTimer()" title="別ウィンドウで表示" style="margin-left:auto">⧉ ポップアウト</button>
     </div>
   </div>
 
@@ -255,7 +261,6 @@ textarea.inp{resize:vertical}
   <div class="tabs" id="tabs-gm" style="display:none">
     <div class="tabs-inner">
       <button class="tab-btn active" onclick="showTab('gm-docs',this)">📄 資料管理</button>
-      <button class="tab-btn" onclick="showTab('gm-timeline',this)">⏳ 時系列</button>
       <button class="tab-btn" onclick="showTab('gm-vote',this)">🗳 投票管理</button>
       <button class="tab-btn" onclick="showTab('gm-memo',this)">📝 GMメモ</button>
     </div>
@@ -265,7 +270,7 @@ textarea.inp{resize:vertical}
   <div class="tabs" id="tabs-pl" style="display:none">
     <div class="tabs-inner">
       <button class="tab-btn active" onclick="showTab('pl-docs',this)">📄 自分の資料</button>
-      <button class="tab-btn" onclick="showTab('pl-timeline',this)">⏳ 時系列</button>
+      <button class="tab-btn" onclick="showTab('pl-timeline',this)">⏳ 時系列メモ</button>
       <button class="tab-btn" onclick="showTab('pl-memo',this)">📝 個人メモ</button>
     </div>
   </div>
@@ -316,25 +321,57 @@ textarea.inp{resize:vertical}
     <div class="panel" id="panel-gm-vote">
       <div class="p-title">🗳 投票管理</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-        <div class="card">
-          <div style="font-weight:600;font-size:14px;margin-bottom:11px">候補者リスト</div>
-          <div style="display:flex;gap:7px;margin-bottom:11px">
-            <input class="inp" id="cand-inp" placeholder="候補者名" style="flex:1">
-            <button class="btn primary sm" onclick="addCand()">＋</button>
+
+        <!-- 左：候補者＋設定 -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:11px">候補者リスト</div>
+            <div style="display:flex;gap:7px;margin-bottom:11px">
+              <input class="inp" id="cand-inp" placeholder="候補者名" style="flex:1">
+              <button class="btn primary sm" onclick="addCand()">＋</button>
+            </div>
+            <div id="cand-list"></div>
           </div>
-          <div id="cand-list"></div>
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:12px">投票ルール設定</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="rule-self" onchange="saveVoteRules()">
+                <span><b>自投票あり</b>：自分自身に投票できる</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="rule-abstain" onchange="saveVoteRules()">
+                <span><b>無投票あり</b>：投票しないことができる</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                <input type="checkbox" id="rule-multi" onchange="saveVoteRules()">
+                <span><b>複数投票あり</b>：複数候補に投票できる</span>
+              </label>
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <div style="font-weight:600;font-size:14px;margin-bottom:11px">コントロール</div>
-          <div style="display:flex;flex-direction:column;gap:9px">
-            <button class="btn success full" id="btn-start-vote" onclick="startVote()">▶ 投票開始</button>
-            <button class="btn danger full" id="btn-stop-vote" onclick="stopVote()" disabled>⏹ 投票終了</button>
-            <button class="btn full" id="btn-reveal-vote" onclick="revealVote()" disabled>👁 結果を全員に表示</button>
-            <button class="btn ghost full" onclick="resetVote()">↺ リセット</button>
+
+        <!-- 右：コントロール＋リアルタイム投票状況 -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div style="font-weight:600;font-size:14px;margin-bottom:11px">コントロール</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <button class="btn success full" id="btn-start-vote" onclick="startVote()">▶ 投票開始</button>
+              <button class="btn danger full" id="btn-stop-vote" onclick="stopVote()" disabled>⏹ 投票終了</button>
+              <button class="btn full" id="btn-reveal-vote" onclick="revealVote()" disabled>👁 結果を全員に表示</button>
+              <button class="btn ghost full" onclick="resetVote()">↺ リセット</button>
+            </div>
+            <div id="vote-status-gm" style="margin-top:12px;padding:9px;background:var(--bg2);border-radius:6px;font-size:13px;color:var(--text2)">投票未開始</div>
           </div>
-          <div id="vote-status-gm" style="margin-top:12px;padding:9px;background:var(--bg2);border-radius:6px;font-size:13px;color:var(--text2)">投票未開始</div>
+          <!-- リアルタイム投票状況（発表前でもGMのみ見える） -->
+          <div class="card" id="gm-live-votes" style="display:none">
+            <div style="font-weight:600;font-size:14px;margin-bottom:11px">📊 リアルタイム投票状況 <span style="font-size:11px;font-weight:400;color:var(--text3)">（GM専用）</span></div>
+            <div id="gm-live-inner"></div>
+          </div>
         </div>
       </div>
+
+      <!-- 結果（締切後・発表後） -->
       <div class="card" id="gm-results" style="display:none">
         <div style="font-weight:600;font-size:14px;margin-bottom:13px">得票結果</div>
         <div id="gm-results-inner"></div>
@@ -359,9 +396,20 @@ textarea.inp{resize:vertical}
       </div>
     </div>
 
-    <!-- ── PL: 時系列（閲覧のみ） ── -->
+    <!-- ── PL: 時系列メモ（個人） ── -->
     <div class="panel" id="panel-pl-timeline">
-      <div class="p-title">⏳ 時系列メモ <span style="font-size:12px;font-weight:400;color:var(--text3)">(閲覧のみ)</span></div>
+      <div class="p-title">⏳ 時系列メモ（個人）</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:95px 1fr 1fr;gap:9px;margin-bottom:9px">
+          <div><div class="lbl">時刻</div><input class="inp" id="pl-tl-time" placeholder="10:30"></div>
+          <div><div class="lbl">登場人物</div><input class="inp" id="pl-tl-player" placeholder="名前（任意）"></div>
+          <div><div class="lbl">タグ</div><select class="sel" id="pl-tl-tag"><option>情報</option><option>アリバイ</option><option>証拠</option><option>疑惑</option><option>重要</option><option>その他</option></select></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <textarea class="inp" id="pl-tl-content" rows="2" placeholder="内容…" style="flex:1"></textarea>
+          <button class="btn primary" onclick="addPlTL()">＋ 追加</button>
+        </div>
+      </div>
       <div class="tl-wrap"><div class="tl-line"></div><div id="pl-tl-list"></div></div>
     </div>
 
@@ -429,7 +477,7 @@ let players=[], gmMode='gm', roomTitle='';
 let docsData={}, tlData={}, voteData={}, gmMemoData={}, plMemoData={};
 let selDocKey=null;
 let timerSec=0, timerRunning=false, timerCountdown=false, timerPreset=0, timerInterval=null;
-let myVote=null, hasVoted=false, votingFor=null;
+let myVotes=[], hasVoted=false, votingFor=null;
 const COLORS=['#8B1A1A','#1A3D6B','#1A6B3A','#8B6914','#5B1A6B','#6B3D1A','#1A5B6B','#3D1A6B'];
 const TAG_COLORS={情報:'#1A3D6B',アリバイ:'#1A6B3A',証拠:'#8B6914',疑惑:'#8B1A1A',重要:'#6B1A1A',その他:'#6B6058'};
 let gmModeVal='gm';
@@ -628,7 +676,10 @@ function subscribeAll(){
     renderTimerDisp();
   });
   db.ref('rooms/'+roomId+'/vote').on('value',snap=>{voteData=snap.val()||{phase:'idle'};renderVoteGM();renderVotePL();});
-  db.ref('rooms/'+roomId+'/timeline').on('value',snap=>{tlData=snap.val()||{};renderTL();});
+  // PL個人時系列
+  if(!meIsGM){
+    db.ref('rooms/'+roomId+'/pl-timeline/'+meId).on('value',snap=>renderPlTL(snap.val()||{}));
+  }
   db.ref('rooms/'+roomId+'/docs').on('value',snap=>{docsData=snap.val()||{};renderDocList();});
   // GM memo: only GM subscribes
   if(meIsGM){
@@ -642,8 +693,18 @@ function subscribeAll(){
 
 // ══ TIMER ══
 function renderTimerPresets(){
-  document.getElementById('t-presets').innerHTML=[5,10,15,20,30,60].map(p=>
-    `<button class="t-preset${timerPreset===p&&timerCountdown?' on':''}" onclick="setTimerPreset(${p})">${p}分</button>`).join('');
+  const presets=[3,5,10,15,20,30,60];
+  document.getElementById('t-presets').innerHTML=presets.map(p=>
+    `<button class="t-preset${timerPreset===p&&timerCountdown?' on':''}" onclick="setTimerPreset(${p})" ${meIsGM?'':'disabled style="pointer-events:none;opacity:.5"'}>${p}分</button>`).join('');
+  // GMのみ操作ボタンとカスタム入力を表示
+  document.getElementById('t-btns').style.display=meIsGM?'flex':'none';
+  document.getElementById('t-custom-wrap').style.display=meIsGM?'flex':'none';
+}
+function setCustomPreset(){
+  const val=parseInt(document.getElementById('t-custom-inp').value);
+  if(!val||val<1)return;
+  setTimerPreset(val);
+  document.getElementById('t-custom-inp').value='';
 }
 function setTimerPreset(min){
   timerPreset=min;timerCountdown=true;timerSec=min*60;
@@ -697,16 +758,69 @@ function syncTimerRun(r){
   renderTimerDisp();
 }
 
+// ── 効果音（Web Audio API でベル音を生成） ──
+function playTimerEndSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const notes=[523,659,784,1047]; // ド・ミ・ソ・ド（上昇）
+    notes.forEach((freq,i)=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.type='sine';osc.frequency.value=freq;
+      const start=ctx.currentTime+i*0.18;
+      gain.gain.setValueAtTime(0,start);
+      gain.gain.linearRampToValueAtTime(0.4,start+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001,start+0.6);
+      osc.start(start);osc.stop(start+0.6);
+    });
+  }catch(e){}
+}
+
 function startLocalTimer(){
   clearInterval(timerInterval);
+  let alreadyBeeped=false;
   timerInterval=setInterval(()=>{
     const s=getDisplaySec();
     if(timerCountdown&&s<=0){
       clearInterval(timerInterval);timerRunning=false;timerSec=0;
       db.ref('rooms/'+roomId+'/timer').update({running:false,sec:0,startedAt:null});
+      if(!alreadyBeeped){alreadyBeeped=true;playTimerEndSound();}
     }
     renderTimerDisp();
-  },250); // 250msで更新すれば表示は滑らか＆ズレなし
+  },250);
+}
+
+// ── タイマーポップアウト ──
+let popoutWin=null;
+function popoutTimer(){
+  if(popoutWin&&!popoutWin.closed){popoutWin.focus();return;}
+  const w=window.open('','timerPopout','width=340,height=220,resizable=yes,scrollbars=no');
+  popoutWin=w;
+  const style=`
+    body{margin:0;background:#1a1714;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:'JetBrains Mono',monospace;}
+    #pt{font-size:72px;font-weight:500;letter-spacing:4px;color:#C9A84C;transition:color .3s}
+    #pt.alert{color:#C0392B;animation:pulse .8s infinite}
+    #pa{font-size:13px;font-weight:600;color:#C0392B;margin-top:8px;display:none;animation:pulse .8s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  `;
+  w.document.write(`<!DOCTYPE html><html><head><title>タイマー</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>${style}</style></head>
+    <body><div id="pt">00:00</div><div id="pa">⚠ 残り時間わずか</div></body></html>`);
+  w.document.close();
+  // メインウィンドウから定期的に時刻を送る
+  const sync=setInterval(()=>{
+    if(!w||w.closed){clearInterval(sync);popoutWin=null;return;}
+    try{
+      const s=getDisplaySec();
+      const isAl=timerCountdown&&s<=60&&s>0&&timerRunning;
+      const el=w.document.getElementById('pt');
+      const al=w.document.getElementById('pa');
+      if(el){el.textContent=fmt(s);el.className=isAl?'alert':'';}
+      if(al)al.style.display=isAl?'block':'none';
+    }catch(e){clearInterval(sync);}
+  },250);
 }
 
 function resetTimer(){
@@ -822,17 +936,23 @@ function openPDFTab(key){
   w.document.close();
 }
 
-// ══ TIMELINE ══
-function addTL(){
-  const time=document.getElementById('tl-time').value.trim();
-  const content=document.getElementById('tl-content').value.trim();
+// PL個人時系列（Firebase上は pl-timeline/meId/ に保存）
+function addPlTL(){
+  const time=document.getElementById('pl-tl-time').value.trim();
+  const content=document.getElementById('pl-tl-content').value.trim();
   if(!time||!content)return;
-  db.ref('rooms/'+roomId+'/timeline').push({time,content,player:document.getElementById('tl-player').value,tag:document.getElementById('tl-tag').value,ts:Date.now()});
-  document.getElementById('tl-content').value='';
+  db.ref('rooms/'+roomId+'/pl-timeline/'+meId).push({
+    time, content,
+    player:document.getElementById('pl-tl-player').value,
+    tag:document.getElementById('pl-tl-tag').value,
+    ts:Date.now()
+  });
+  document.getElementById('pl-tl-content').value='';
 }
-function renderTL(){
-  const entries=Object.entries(tlData).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.time.localeCompare(b.time));
-  const html=entries.length===0?'<div style="color:var(--text3);font-size:14px;font-style:italic">まだ記録がありません</div>'
+function renderPlTL(data){
+  const entries=Object.entries(data).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.time.localeCompare(b.time));
+  const el=document.getElementById('pl-tl-list');if(!el)return;
+  el.innerHTML=entries.length===0?'<div style="color:var(--text3);font-size:14px;font-style:italic">まだ記録がありません</div>'
     :entries.map(e=>`<div class="tl-item">
       <div class="tl-dot" style="background:${TAG_COLORS[e.tag]||'var(--text3)'}"></div>
       <div class="card" style="padding:11px">
@@ -845,27 +965,33 @@ function renderTL(){
             </div>
             <div style="font-size:14px;line-height:1.6">${e.content}</div>
           </div>
-          ${meIsGM?`<button onclick="db.ref('rooms/${roomId}/timeline/${e.key}').remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;margin-left:8px">✕</button>`:''}
+          <button onclick="db.ref('rooms/${roomId}/pl-timeline/${meId}/${e.key}').remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;margin-left:8px">✕</button>
         </div>
       </div>
     </div>`).join('');
-  const gEl=document.getElementById('tl-list');if(gEl)gEl.innerHTML=html;
-  const pEl=document.getElementById('pl-tl-list');if(pEl)pEl.innerHTML=html;
 }
 
 // ══ VOTE ══
 function addCand(){const v=document.getElementById('cand-inp').value.trim();if(!v)return;db.ref('rooms/'+roomId+'/vote/candidates').push({name:v,ts:Date.now()});document.getElementById('cand-inp').value='';}
 function deleteCand(key){db.ref('rooms/'+roomId+'/vote/candidates/'+key).remove();}
-function startVote(){db.ref('rooms/'+roomId+'/vote').update({phase:'open',votes:{}});hasVoted=false;myVote=null;}
+function saveVoteRules(){db.ref('rooms/'+roomId+'/vote/rules').set({selfVote:document.getElementById('rule-self').checked,abstain:document.getElementById('rule-abstain').checked,multi:document.getElementById('rule-multi').checked});}
+function startVote(){db.ref('rooms/'+roomId+'/vote').update({phase:'open',votes:{}});hasVoted=false;myVotes=[];}
 function stopVote(){db.ref('rooms/'+roomId+'/vote/phase').set('closed');}
 function revealVote(){db.ref('rooms/'+roomId+'/vote/phase').set('revealed');}
-function resetVote(){db.ref('rooms/'+roomId+'/vote').set({phase:'idle',candidates:{}});hasVoted=false;myVote=null;votingFor=null;document.getElementById('vote-overlay').style.display='none';}
+function resetVote(){db.ref('rooms/'+roomId+'/vote').set({phase:'idle',candidates:{},rules:{selfVote:false,abstain:false,multi:false}});hasVoted=false;myVotes=[];votingFor=null;document.getElementById('vote-overlay').style.display='none';['rule-self','rule-abstain','rule-multi'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});}
 
 function renderVoteGM(){
   if(!meIsGM)return;
   const phase=voteData.phase||'idle';
   const cands=Object.entries(voteData.candidates||{}).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
   const votes=voteData.votes||{};
+  const rules=voteData.rules||{};
+  const rSelf=document.getElementById('rule-self');
+  const rAbs=document.getElementById('rule-abstain');
+  const rMulti=document.getElementById('rule-multi');
+  if(rSelf&&document.activeElement!==rSelf)rSelf.checked=!!rules.selfVote;
+  if(rAbs&&document.activeElement!==rAbs)rAbs.checked=!!rules.abstain;
+  if(rMulti&&document.activeElement!==rMulti)rMulti.checked=!!rules.multi;
   const labels={idle:'投票未開始',open:'📨 受付中',closed:'✅ 締切済',revealed:'👁 結果公開中'};
   const statusEl=document.getElementById('vote-status-gm');
   statusEl.textContent=labels[phase]||phase;
@@ -879,11 +1005,41 @@ function renderVoteGM(){
       <span style="font-size:14px;font-weight:600">${c.name}</span>
       <button onclick="deleteCand('${c.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px" ${phase!=='idle'?'disabled':''}>✕</button>
     </div>`).join('');
+  // リアルタイム投票状況（GM専用）
+  const liveWrap=document.getElementById('gm-live-votes');
+  if(phase==='open'||phase==='closed'||phase==='revealed'){
+    liveWrap.style.display='block';
+    const voterMap={};cands.forEach(c=>{voterMap[c.key]=[];});
+    let abstainers=[];
+    Object.entries(votes).forEach(([vid,val])=>{
+      const voterName=players.find(p=>p.id===vid)?.name||vid;
+      const vals=Array.isArray(val)?val:[val];
+      if(vals.length===0||vals[0]==='__abstain__'){abstainers.push(voterName);return;}
+      vals.forEach(v=>{if(voterMap[v])voterMap[v].push(voterName);});
+    });
+    const votedCount=Object.keys(votes).length;
+    const plCount=players.filter(p=>!p.isGM).length;
+    document.getElementById('gm-live-inner').innerHTML=`
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">${votedCount} / ${plCount} 人が投票済み</div>
+      ${cands.map(c=>`<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600;min-width:100px">${c.name}</span>
+          <span style="font-size:12px;color:var(--text3)">${voterMap[c.key].length}票</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${voterMap[c.key].length===0
+            ?'<span style="font-size:12px;color:var(--text3);font-style:italic">なし</span>'
+            :voterMap[c.key].map(n=>`<span style="background:var(--bluebg);color:var(--blue);border:1px solid #B0C4DE;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:600">${n}</span>`).join('')}
+        </div>
+      </div>`).join('')}
+      ${abstainers.length>0?`<div style="margin-top:8px;padding:8px 10px;background:var(--bg2);border-radius:6px;font-size:12px;color:var(--text3)">棄権: ${abstainers.join('、')}</div>`:''}`;
+  }else liveWrap.style.display='none';
+  // 結果バー
   const resWrap=document.getElementById('gm-results');
   if(phase==='closed'||phase==='revealed'){
     resWrap.style.display='block';
     const tally={};cands.forEach(c=>{tally[c.key]=0;});
-    Object.values(votes).forEach(v=>{if(tally[v]!==undefined)tally[v]++;});
+    Object.values(votes).forEach(val=>{const vals=Array.isArray(val)?val:[val];vals.forEach(v=>{if(tally[v]!==undefined)tally[v]++;});});
     const total=Math.max(Object.values(tally).reduce((a,b)=>a+b,0),1);
     const maxV=Math.max(...Object.values(tally),0);
     const sorted=[...cands].sort((a,b)=>tally[b.key]-tally[a.key]);
@@ -901,20 +1057,25 @@ function renderVoteGM(){
   }else resWrap.style.display='none';
 }
 
+
 function renderVotePL(){
   if(meIsGM)return;
   const phase=voteData.phase||'idle';
   const overlay=document.getElementById('vote-overlay');
   const cands=Object.entries(voteData.candidates||{}).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
   const votes=voteData.votes||{};
+  const rules=voteData.rules||{};
   if(phase==='open'&&!hasVoted){
     overlay.style.display='flex';
     document.getElementById('v-voted-msg').style.display='none';
     document.getElementById('v-result-area').style.display='none';
     document.getElementById('v-cands').style.display='block';
     document.getElementById('v-submit-row').style.display='flex';
-    document.getElementById('v-cands').innerHTML=cands.map(c=>`
-      <div class="v-cand ${votingFor===c.key?'sel':''}" onclick="selCand('${c.key}',this)">${c.name}</div>`).join('');
+    const filtered=rules.selfVote?cands:cands.filter(c=>c.name!==meName);
+    document.getElementById('v-cands').innerHTML=`
+      ${rules.multi?'<div style="font-size:12px;color:var(--text3);margin-bottom:10px">複数選択可</div>':''}
+      ${filtered.map(c=>`<div class="v-cand ${myVotes.includes(c.key)?'sel':''}" onclick="selCand('${c.key}',${!!rules.multi})">${c.name}</div>`).join('')}
+      ${rules.abstain?`<div class="v-cand ${myVotes.includes('__abstain__')?'sel':''}" onclick="selCand('__abstain__',false)" style="color:var(--text3);font-style:italic">棄権する</div>`:''}`;
   }else if(phase==='revealed'){
     overlay.style.display='flex';
     document.getElementById('v-cands').style.display='none';
@@ -922,7 +1083,7 @@ function renderVotePL(){
     document.getElementById('v-voted-msg').style.display='none';
     document.getElementById('v-result-area').style.display='block';
     const tally={};cands.forEach(c=>{tally[c.key]=0;});
-    Object.values(votes).forEach(v=>{if(tally[v]!==undefined)tally[v]++;});
+    Object.values(votes).forEach(val=>{const vals=Array.isArray(val)?val:[val];vals.forEach(v=>{if(tally[v]!==undefined)tally[v]++;});});
     const total=Math.max(Object.values(tally).reduce((a,b)=>a+b,0),1);
     const maxV=Math.max(...Object.values(tally),0);
     const sorted=[...cands].sort((a,b)=>tally[b.key]-tally[a.key]);
@@ -940,11 +1101,24 @@ function renderVotePL(){
     overlay.style.display='none';
   }
 }
-function selCand(key,el){votingFor=key;document.querySelectorAll('.v-cand').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');}
+
+function selCand(key,isMulti){
+  if(key==='__abstain__'){myVotes=['__abstain__'];}
+  else if(isMulti){myVotes=myVotes.filter(v=>v!=='__abstain__');if(myVotes.includes(key))myVotes=myVotes.filter(v=>v!==key);else myVotes.push(key);}
+  else{myVotes=[key];}
+  document.querySelectorAll('.v-cand').forEach(el=>{
+    const oc=el.getAttribute('onclick')||'';
+    const k=oc.match(/'([^']+)'/)?.[1];
+    el.classList.toggle('sel',!!k&&myVotes.includes(k));
+  });
+}
+
 function submitVote(){
-  if(!votingFor)return;
-  db.ref('rooms/'+roomId+'/vote/votes/'+meId+'_'+Date.now()).set(votingFor);
-  hasVoted=true;votingFor=null;
+  const rules=voteData.rules||{};
+  if(myVotes.length===0&&!rules.abstain){alert('投票先を選んでください');return;}
+  const val=myVotes.length<=1?(myVotes[0]||'__abstain__'):myVotes;
+  db.ref('rooms/'+roomId+'/vote/votes/'+meId).set(val);
+  hasVoted=true;myVotes=[];
   document.getElementById('v-cands').style.display='none';
   document.getElementById('v-submit-row').style.display='none';
   document.getElementById('v-voted-msg').style.display='block';
@@ -960,16 +1134,43 @@ function renderMemos(ctx){
   const gridId=ctx==='gm'?'gm-memo-grid':'pl-memo-grid';
   const el=document.getElementById(gridId);if(!el)return;
   const memos=Object.entries(data).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
-  el.innerHTML=memos.length===0
-    ?'<div style="color:var(--text3);font-size:14px;font-style:italic;grid-column:1/-1">「＋ 追加」でメモを作成</div>'
-    :memos.map(m=>`<div class="memo-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
-        <input value="${m.title||''}" oninput="saveMemoTitle('${ctx}','${m.key}',this.value)" style="border:none;background:transparent;font-weight:600;font-size:14px;color:var(--text);outline:none;width:calc(100% - 26px)">
-        <button onclick="deleteMemo('${ctx}','${m.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
-      </div>
-      <div style="height:1px;background:var(--border);margin-bottom:7px"></div>
-      <textarea oninput="saveMemoContent('${ctx}','${m.key}',this.value)" placeholder="ここに自由にメモ…">${m.content||''}</textarea>
-    </div>`).join('');
+  if(memos.length===0){
+    el.innerHTML='<div style="color:var(--text3);font-size:14px;font-style:italic;grid-column:1/-1">「＋ 追加」でメモを作成</div>';
+    return;
+  }
+  // 既存カードのキー一覧
+  const existing=new Set([...el.querySelectorAll('.memo-card')].map(c=>c.dataset.key));
+  const incoming=new Set(memos.map(m=>m.key));
+  // 削除されたカードを消す
+  el.querySelectorAll('.memo-card').forEach(c=>{if(!incoming.has(c.dataset.key))c.remove();});
+  memos.forEach((m,i)=>{
+    const card=el.querySelector(`.memo-card[data-key="${m.key}"]`);
+    if(card){
+      // 既存カード：アクティブでない要素だけ更新
+      const titleEl=card.querySelector('.memo-title');
+      const bodyEl=card.querySelector('.memo-body');
+      if(titleEl&&document.activeElement!==titleEl) titleEl.value=m.title||'';
+      if(bodyEl&&document.activeElement!==bodyEl) bodyEl.value=m.content||'';
+    } else {
+      // 新規カードを追加
+      const div=document.createElement('div');
+      div.className='memo-card'; div.dataset.key=m.key;
+      div.innerHTML=`
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+          <input class="memo-title" value="${(m.title||'').replace(/"/g,'&quot;')}" placeholder="タイトル"
+            style="border:none;background:transparent;font-weight:600;font-size:14px;color:var(--text);outline:none;width:calc(100% - 26px)">
+          <button onclick="deleteMemo('${ctx}','${m.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
+        </div>
+        <div style="height:1px;background:var(--border);margin-bottom:7px"></div>
+        <textarea class="memo-body" placeholder="ここに自由にメモ…">${m.content||''}</textarea>`;
+      div.querySelector('.memo-title').addEventListener('input',function(){saveMemoTitle(ctx,m.key,this.value);});
+      div.querySelector('.memo-body').addEventListener('input',function(){saveMemoContent(ctx,m.key,this.value);});
+      // 順番通りに挿入
+      const cards=[...el.querySelectorAll('.memo-card')];
+      if(i<cards.length) el.insertBefore(div,cards[i]);
+      else el.appendChild(div);
+    }
+  });
 }
 function deleteMemo(ctx,key){
   const path=ctx==='gm'?'gm-memos/'+key:'pl-memos/'+meId+'/'+key;
