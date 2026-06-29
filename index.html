@@ -377,6 +377,18 @@ textarea.inp{resize:vertical}
   </div><!-- /content -->
 </div><!-- /scr-app -->
 
+<!-- ── PDF MODAL ── -->
+<div id="pdf-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;flex-direction:column;align-items:stretch">
+  <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px;gap:12px">
+    <div style="font-weight:600;font-size:15px;color:var(--text)" id="pdf-modal-title"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn sm ghost" id="pdf-modal-tab-btn">↗ 別タブで開く</button>
+      <button class="btn sm danger" onclick="closePDFModal()">✕ 閉じる</button>
+    </div>
+  </div>
+  <iframe id="pdf-modal-iframe" src="" style="flex:1;width:100%;border:none;display:block"></iframe>
+</div>
+
 <!-- ── VOTE OVERLAY (PL) ── -->
 <div id="vote-overlay" style="display:none">
   <div class="overlay">
@@ -601,8 +613,19 @@ function subscribeAll(){
   db.ref('rooms/'+roomId).on('value',()=>setSynced(true));
   db.ref('rooms/'+roomId+'/timer').on('value',snap=>{
     const d=snap.val();if(!d)return;
-    if(!timerRunning){timerSec=d.sec||0;timerCountdown=d.isCountdown||false;timerPreset=d.presetMin||0;renderTimerDisp();}
-    if(d.running!==timerRunning)syncTimerRun(d.running);
+    timerCountdown=d.isCountdown||false;
+    timerPreset=d.presetMin||0;
+    if(d.running){
+      timerStartedAt=d.startedAt||Date.now();
+      timerBaseSec=d.baseSec||0;
+      timerSec=getDisplaySec();
+      if(!timerRunning){timerRunning=true;startLocalTimer();}
+    } else {
+      timerSec=d.sec||0;
+      timerStartedAt=null;timerBaseSec=0;
+      if(timerRunning){timerRunning=false;clearInterval(timerInterval);timerInterval=null;}
+    }
+    renderTimerDisp();
   });
   db.ref('rooms/'+roomId+'/vote').on('value',snap=>{voteData=snap.val()||{phase:'idle'};renderVoteGM();renderVotePL();});
   db.ref('rooms/'+roomId+'/timeline').on('value',snap=>{tlData=snap.val()||{};renderTL();});
@@ -630,26 +653,75 @@ function setTimerPreset(min){
 }
 function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h>0?[h,m,sc].map(n=>String(n).padStart(2,'0')).join(':'):[m,sc].map(n=>String(n).padStart(2,'0')).join(':');}
 function renderTimerDisp(){
+  const s=getDisplaySec();
   const el=document.getElementById('timer-disp');
   const al=document.getElementById('t-alert');
-  const isAl=timerCountdown&&timerSec<=60&&timerSec>0&&timerRunning;
-  el.textContent=fmt(timerSec);el.className='timer-disp'+(isAl?' alert':'');
+  const isAl=timerCountdown&&s<=60&&s>0&&timerRunning;
+  el.textContent=fmt(s);el.className='timer-disp'+(isAl?' alert':'');
   al.style.display=isAl?'block':'none';
   document.getElementById('t-start-btn').textContent=timerRunning?'⏸ 停止':'▶ 開始';
   document.getElementById('t-start-btn').className='btn sm '+(timerRunning?'danger':'primary');
   document.getElementById('t-mode-btn').textContent=timerCountdown?'▲ CU':'▼ CD';
 }
-function toggleTimer(){timerRunning=!timerRunning;db.ref('rooms/'+roomId+'/timer').update({running:timerRunning});if(timerRunning)startLocalTimer();else{clearInterval(timerInterval);timerInterval=null;}renderTimerDisp();}
-function syncTimerRun(r){if(r===timerRunning)return;timerRunning=r;if(r)startLocalTimer();else{clearInterval(timerInterval);timerInterval=null;}renderTimerDisp();}
+// タイマーはstartedAt（開始時刻）とbaseSecを使って
+// 「現在時刻 - 開始時刻 + baseSec」で表示値を計算する。
+// これによりタブが裏になっても絶対にズレない。
+let timerStartedAt=null, timerBaseSec=0;
+
+function getDisplaySec(){
+  if(!timerRunning||!timerStartedAt) return timerSec;
+  const elapsed=Math.floor((Date.now()-timerStartedAt)/1000);
+  if(timerCountdown) return Math.max(0, timerBaseSec - elapsed);
+  return timerBaseSec + elapsed;
+}
+
+function toggleTimer(){
+  timerRunning=!timerRunning;
+  if(timerRunning){
+    timerStartedAt=Date.now();
+    timerBaseSec=timerSec;
+    db.ref('rooms/'+roomId+'/timer').update({running:true, startedAt:timerStartedAt, baseSec:timerBaseSec});
+    startLocalTimer();
+  } else {
+    timerSec=getDisplaySec();
+    clearInterval(timerInterval);timerInterval=null;
+    db.ref('rooms/'+roomId+'/timer').update({running:false, sec:timerSec, startedAt:null});
+  }
+  renderTimerDisp();
+}
+
+function syncTimerRun(r){
+  if(r===timerRunning)return;
+  timerRunning=r;
+  if(r) startLocalTimer(); else {clearInterval(timerInterval);timerInterval=null;timerSec=getDisplaySec();}
+  renderTimerDisp();
+}
+
 function startLocalTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
-    if(timerCountdown){if(timerSec<=0){clearInterval(timerInterval);timerRunning=false;db.ref('rooms/'+roomId+'/timer').update({running:false,sec:0});renderTimerDisp();return;}timerSec--;}else timerSec++;
-    db.ref('rooms/'+roomId+'/timer/sec').set(timerSec);renderTimerDisp();
-  },1000);
+    const s=getDisplaySec();
+    if(timerCountdown&&s<=0){
+      clearInterval(timerInterval);timerRunning=false;timerSec=0;
+      db.ref('rooms/'+roomId+'/timer').update({running:false,sec:0,startedAt:null});
+    }
+    renderTimerDisp();
+  },250); // 250msで更新すれば表示は滑らか＆ズレなし
 }
-function resetTimer(){clearInterval(timerInterval);timerInterval=null;timerRunning=false;timerSec=timerPreset?timerPreset*60:0;db.ref('rooms/'+roomId+'/timer').update({sec:timerSec,running:false});renderTimerDisp();}
-function toggleTimerMode(){timerCountdown=!timerCountdown;clearInterval(timerInterval);timerInterval=null;timerRunning=false;timerSec=0;db.ref('rooms/'+roomId+'/timer').update({isCountdown:timerCountdown,sec:0,running:false});renderTimerDisp();}
+
+function resetTimer(){
+  clearInterval(timerInterval);timerInterval=null;timerRunning=false;
+  timerSec=timerPreset?timerPreset*60:0;timerStartedAt=null;timerBaseSec=0;
+  db.ref('rooms/'+roomId+'/timer').update({sec:timerSec,running:false,startedAt:null,baseSec:0});
+  renderTimerDisp();
+}
+
+function toggleTimerMode(){
+  timerCountdown=!timerCountdown;clearInterval(timerInterval);timerInterval=null;
+  timerRunning=false;timerSec=0;timerStartedAt=null;timerBaseSec=0;
+  db.ref('rooms/'+roomId+'/timer').update({isCountdown:timerCountdown,sec:0,running:false,startedAt:null});
+  renderTimerDisp();
+}
 
 // ══ DOCS ══
 function showAddDoc(){document.getElementById('add-doc-form').style.display='block';}
@@ -708,19 +780,46 @@ function docItem(d,ctx){
 function selectDoc(key,ctx){
   selDocKey=key;renderDocList();
   const d=docsData[key];if(!d)return;
+  const isPDF=d.fileType==='pdf'&&d.content?.startsWith('data:');
   const viewerId=ctx==='gm'?'gm-doc-viewer':'pl-doc-viewer';
   document.getElementById(viewerId).innerHTML=`
     <div class="card" style="height:100%;display:flex;flex-direction:column">
-      <div style="margin-bottom:11px;padding-bottom:11px;border-bottom:1px solid var(--border)">
-        <div style="font-weight:600;font-size:16px;margin-bottom:2px">${d.title}</div>
-        <div style="font-size:12px;color:var(--text3)">配布先: ${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.name||'指定'}</div>
+      <div style="margin-bottom:11px;padding-bottom:11px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-weight:600;font-size:16px;margin-bottom:2px">${d.title}</div>
+          <div style="font-size:12px;color:var(--text3)">配布先: ${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.name||'指定'}</div>
+        </div>
+        ${isPDF?`<div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn sm primary" onclick="openPDFModal('${key}')">⛶ 大きく見る</button>
+          <button class="btn sm ghost" onclick="openPDFTab('${key}')">↗ 別タブ</button>
+        </div>`:''}
       </div>
       <div style="flex:1;overflow-y:auto">
-        ${d.fileType==='pdf'&&d.content?.startsWith('data:')
+        ${isPDF
           ?`<iframe src="${d.content}" style="width:100%;height:440px;border:none;border-radius:4px"></iframe>`
           :`<div style="font-size:15px;line-height:1.8;white-space:pre-wrap">${d.content||'<span style="color:var(--text3)">内容がありません</span>'}</div>`}
       </div>
     </div>`;
+}
+
+function openPDFModal(key){
+  const d=docsData[key];if(!d)return;
+  document.getElementById('pdf-modal-title').textContent=d.title;
+  document.getElementById('pdf-modal-iframe').src=d.content;
+  document.getElementById('pdf-modal-tab-btn').onclick=()=>openPDFTab(key);
+  document.getElementById('pdf-modal').style.display='flex';
+}
+function closePDFModal(){
+  document.getElementById('pdf-modal').style.display='none';
+  document.getElementById('pdf-modal-iframe').src='';
+}
+function openPDFTab(key){
+  const d=docsData[key];if(!d)return;
+  const w=window.open();
+  w.document.write(`<html><head><title>${d.title}</title></head><body style="margin:0">
+    <iframe src="${d.content}" style="width:100%;height:100vh;border:none"></iframe>
+  </body></html>`);
+  w.document.close();
 }
 
 // ══ TIMELINE ══
