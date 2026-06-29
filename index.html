@@ -10,204 +10,187 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+JP:wght@400;600&family=JetBrains+Mono:wght@500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F7F5F0;
-  --bg2:#EDEAE3;
-  --surface:#FFFFFF;
-  --border:#D8D3C8;
-  --border2:#C4BDB0;
-  --text:#2C2520;
-  --text2:#6B6058;
-  --text3:#9E9588;
-  --gold:#8B6914;
-  --goldbg:#FDF3DC;
-  --goldborder:#D4A832;
-  --red:#8B1A1A;
-  --redbg:#FDF0F0;
-  --redborder:#D44;
-  --green:#1A6B3A;
-  --greenbg:#F0FDF4;
-  --greenborder:#4A9;
-  --blue:#1A3D6B;
-  --bluebg:#F0F4FD;
-  --shadow:0 1px 4px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
-  --shadow2:0 4px 16px rgba(0,0,0,.12);
+  --bg:#F7F5F0;--bg2:#EDEAE3;--surface:#FFFFFF;
+  --border:#D8D3C8;--border2:#C4BDB0;
+  --text:#2C2520;--text2:#6B6058;--text3:#9E9588;
+  --gold:#8B6914;--goldbg:#FDF3DC;--goldborder:#D4A832;
+  --red:#8B1A1A;--redbg:#FDF0F0;--redborder:#C44;
+  --green:#1A6B3A;--greenbg:#F0FDF4;--greenborder:#4A9;
+  --blue:#1A3D6B;--bluebg:#F0F4FD;
+  --sh:0 1px 4px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.04);
+  --sh2:0 4px 20px rgba(0,0,0,.14);
 }
 html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Noto Serif JP',Georgia,serif;font-size:15px;line-height:1.7}
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:var(--bg2)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 input,textarea,select,button{font-family:inherit}
-@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-@keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes popin{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
 
-/* ══ LAYOUT ══ */
-#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
-#app{display:none;flex-direction:column;min-height:100vh}
+/* ── Screens ── */
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+#scr-top{align-items:center;justify-content:center;padding:24px}
+#scr-who{align-items:center;justify-content:center;padding:24px}
 
-/* ══ TOPBAR ══ */
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:var(--shadow)}
-.topbar-inner{display:flex;align-items:center;gap:12px;max-width:1300px;margin:0 auto;height:52px;flex-wrap:wrap}
-.topbar-title{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--text);letter-spacing:.04em}
-.topbar-sep{width:1px;height:18px;background:var(--border);flex-shrink:0}
-.topbar-scenario{font-size:14px;color:var(--text2);font-weight:600}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.room-chip{display:flex;align-items:center;gap:6px;background:var(--goldbg);border:1px solid var(--goldborder);border-radius:6px;padding:4px 10px}
-.room-chip .code{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:var(--gold);letter-spacing:3px}
-.copy-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px}
-.sync-chip{display:flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border-radius:12px;font-weight:600}
+/* ── Setup ── */
+.setup-box{width:100%;max-width:540px}
+.s-head{text-align:center;margin-bottom:32px}
+.s-head h1{font-family:'Cinzel',serif;font-size:30px;font-weight:700;color:var(--text);margin-bottom:4px}
+.s-head p{color:var(--text3);font-size:13px}
+.s-divider{width:44px;height:2px;background:var(--goldborder);margin:10px auto}
+.s-eyebrow{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.2em;color:var(--text3);margin-bottom:10px}
+.mode-tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px;margin-bottom:18px}
+.mode-tab{flex:1;padding:9px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .18s;background:transparent;color:var(--text3)}
+.mode-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--sh)}
+.gm-btns{display:flex;gap:8px;margin-bottom:14px}
+.gm-btn{flex:1;padding:9px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:600;transition:all .18s;background:var(--bg2);color:var(--text2);text-align:center}
+.gm-btn.active{background:var(--goldbg);border-color:var(--goldborder);color:var(--gold)}
+.player-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+
+/* ── WHO screen ── */
+.who-box{width:100%;max-width:480px}
+.who-card{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-bottom:10px;transition:all .18s;display:flex;align-items:center;gap:14px;box-shadow:var(--sh)}
+.who-card:hover{border-color:var(--goldborder);background:var(--goldbg)}
+.who-card.gm-card{border-color:var(--goldborder);background:var(--goldbg)}
+.who-card.gm-card:hover{background:#fbecc8}
+.who-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+/* ── App layout ── */
+#scr-app{display:none;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:200;box-shadow:var(--sh)}
+.topbar-inner{display:flex;align-items:center;gap:10px;max-width:1300px;margin:0 auto;height:50px;flex-wrap:wrap}
+.t-title{font-family:'Cinzel',serif;font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.05em}
+.t-sep{width:1px;height:16px;background:var(--border);flex-shrink:0}
+.t-scenario{font-size:14px;font-weight:600;color:var(--text)}
+.t-who{font-size:13px;color:var(--text2)}
+.t-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.room-chip{display:flex;align-items:center;gap:6px;background:var(--goldbg);border:1px solid var(--goldborder);border-radius:6px;padding:3px 10px}
+.room-chip .code{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--gold);letter-spacing:3px}
+.copy-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px}
+.sync-chip{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px}
 .sync-chip.ok{background:var(--greenbg);color:var(--green);border:1px solid var(--greenborder)}
 .sync-chip.busy{background:var(--goldbg);color:var(--gold);border:1px solid var(--goldborder)}
 .sync-dot{width:6px;height:6px;border-radius:50%}
 .sync-chip.ok .sync-dot{background:var(--green)}
 .sync-chip.busy .sync-dot{background:var(--gold);animation:pulse 1s infinite}
 
-/* ══ TIMER BAR ══ */
-.timerbar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px}
-.timerbar-inner{display:flex;align-items:center;gap:16px;max-width:1300px;margin:0 auto;flex-wrap:wrap}
-.timer-display{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;color:var(--gold);letter-spacing:2px;min-width:80px}
-.timer-display.alert{color:var(--red);animation:pulse .8s infinite}
-.timer-presets{display:flex;gap:6px;flex-wrap:wrap}
-.timer-preset-btn{padding:3px 10px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;transition:all .15s}
-.timer-preset-btn:hover,.timer-preset-btn.active{background:var(--goldbg);border-color:var(--goldborder);color:var(--gold)}
-.timer-btns{display:flex;gap:6px}
+/* ── Timer bar ── */
+.timerbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:7px 20px}
+.timerbar-inner{display:flex;align-items:center;gap:14px;max-width:1300px;margin:0 auto;flex-wrap:wrap}
+.timer-disp{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;color:var(--gold);letter-spacing:2px;min-width:74px}
+.timer-disp.alert{color:var(--red);animation:pulse .8s infinite}
+.t-presets{display:flex;gap:5px;flex-wrap:wrap}
+.t-preset{padding:3px 9px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;transition:all .14s}
+.t-preset:hover,.t-preset.on{background:var(--goldbg);border-color:var(--goldborder);color:var(--gold)}
+.t-btns{display:flex;gap:6px}
 
-/* ══ PLAYERS BAR ══ */
-.playersbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 20px}
-.playersbar-inner{display:flex;gap:8px;max-width:1300px;margin:0 auto;flex-wrap:wrap;align-items:center}
-.player-pill{padding:3px 12px;border-radius:14px;font-size:12px;font-weight:600;white-space:nowrap}
+/* ── Players bar ── */
+.playersbar{background:var(--surface);border-bottom:1px solid var(--border);padding:5px 20px}
+.playersbar-inner{display:flex;gap:7px;max-width:1300px;margin:0 auto;flex-wrap:wrap;align-items:center}
+.p-pill{padding:3px 11px;border-radius:12px;font-size:12px;font-weight:600}
+.p-pill.me{outline:2px solid currentColor;outline-offset:1px}
 
-/* ══ VIEW TOGGLE ══ */
-.view-toggle{display:flex;background:var(--bg2);border-radius:6px;padding:2px;gap:2px;border:1px solid var(--border)}
-.view-btn{padding:3px 12px;border-radius:4px;border:none;cursor:pointer;font-family:'Cinzel',serif;font-size:11px;font-weight:600;transition:all .18s;background:transparent;color:var(--text3)}
-.view-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
-
-/* ══ TABS ══ */
+/* ── Tabs ── */
 .tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;overflow-x:auto}
 .tabs-inner{display:flex;max-width:1300px;margin:0 auto}
-.tab-btn{padding:12px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap;letter-spacing:.02em}
+.tab-btn{padding:11px 15px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;transition:all .16s;white-space:nowrap}
 .tab-btn.active{border-bottom-color:var(--gold);color:var(--gold)}
-.tab-btn:hover{color:var(--text)}
+.tab-btn:hover:not(.active){color:var(--text)}
 
-/* ══ CONTENT ══ */
-.content{flex:1;max-width:1300px;width:100%;margin:0 auto;padding:24px 20px}
+/* ── Content ── */
+.content{flex:1;max-width:1300px;width:100%;margin:0 auto;padding:22px 20px}
 .panel{display:none}.panel.active{display:block;animation:fadein .2s ease}
-.panel-title{font-family:'Cinzel',serif;font-size:18px;font-weight:600;color:var(--text);margin-bottom:20px}
+.p-title{font-family:'Cinzel',serif;font-size:17px;font-weight:600;margin-bottom:18px}
 
-/* ══ CARDS ══ */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;box-shadow:var(--shadow)}
-.card.gold{border-color:var(--goldborder);background:var(--goldbg)}
-.card.red{border-color:var(--redborder);background:var(--redbg)}
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;box-shadow:var(--sh)}
 
-/* ══ FORM ══ */
-.label{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
-.inp{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-size:14px;outline:none;transition:border-color .15s}
+/* ── Forms ── */
+.lbl{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.inp{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-size:14px;outline:none;transition:border-color .14s}
 .inp:focus{border-color:var(--gold);background:var(--surface)}
 .sel{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 12px;font-size:14px;outline:none}
 textarea.inp{resize:vertical}
 
-/* ══ BUTTONS ══ */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;background:var(--surface);color:var(--text);white-space:nowrap}
-.btn:hover{background:var(--bg2)}
-.btn.primary{background:var(--gold);color:#fff;border-color:var(--gold)}
-.btn.primary:hover{background:#7A5C10;border-color:#7A5C10}
-.btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
-.btn.success{background:var(--green);color:#fff;border-color:var(--green)}
-.btn.ghost{background:transparent;color:var(--text2);border-color:var(--border)}
-.btn.sm{padding:4px 12px;font-size:11px}
-.btn.full{width:100%;justify-content:center;padding:11px 0;font-size:14px}
-.btn:disabled{opacity:.4;cursor:not-allowed}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:600;transition:all .14s;background:var(--surface);color:var(--text);white-space:nowrap}
+.btn:hover{background:var(--bg2)}.btn.primary{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.primary:hover{background:#7a5c10}.btn.danger{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.success{background:var(--green);color:#fff;border-color:var(--green)}.btn.ghost{background:transparent;color:var(--text2)}
+.btn.sm{padding:4px 11px;font-size:11px}.btn.full{width:100%;justify-content:center;padding:11px 0;font-size:14px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
 
-/* ══ SETUP ══ */
-.setup-box{width:100%;max-width:560px}
-.setup-head{text-align:center;margin-bottom:36px}
-.setup-head h1{font-family:'Cinzel',serif;font-size:32px;font-weight:700;color:var(--text);margin-bottom:4px}
-.setup-head p{color:var(--text3);font-size:13px}
-.setup-divider{width:48px;height:2px;background:var(--goldborder);margin:12px auto}
-.mode-tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:3px;gap:3px;margin-bottom:20px}
-.mode-tab{flex:1;padding:9px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .18s;background:transparent;color:var(--text3)}
-.mode-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
-.gm-mode-btns{display:flex;gap:8px}
-.gm-mode-btn{flex:1;padding:9px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:13px;font-weight:600;transition:all .18s;background:var(--bg2);color:var(--text2);text-align:center}
-.gm-mode-btn.active{background:var(--goldbg);border-color:var(--goldborder);color:var(--gold)}
-.player-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+/* ── Timeline ── */
+.tl-wrap{position:relative;padding-left:20px}
+.tl-line{position:absolute;left:5px;top:0;bottom:0;width:2px;background:linear-gradient(var(--goldborder),var(--border))}
+.tl-item{position:relative;margin-bottom:11px;animation:fadein .22s ease}
+.tl-dot{position:absolute;left:-16px;top:10px;width:8px;height:8px;border-radius:50%;border:2px solid var(--surface)}
+.tag-pill{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px}
 
-/* ══ TIMELINE ══ */
-.tl-wrap{position:relative;padding-left:22px}
-.tl-line{position:absolute;left:6px;top:0;bottom:0;width:2px;background:linear-gradient(var(--goldborder),var(--border))}
-.tl-item{position:relative;margin-bottom:12px;animation:fadein .25s ease}
-.tl-dot{position:absolute;left:-18px;top:10px;width:8px;height:8px;border-radius:50%;border:2px solid var(--surface)}
-.tag-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px}
+/* ── Docs ── */
+.docs-grid{display:grid;grid-template-columns:230px 1fr;gap:14px;min-height:440px}
+.doc-item{padding:10px 13px;border-radius:7px;cursor:pointer;border:1px solid var(--border);transition:all .14s;background:var(--surface);margin-bottom:6px;animation:fadein .2s ease}
+.doc-item:hover{border-color:var(--border2)}.doc-item.sel{background:var(--goldbg);border-color:var(--goldborder)}
 
-/* ══ DOCS ══ */
-.docs-grid{display:grid;grid-template-columns:240px 1fr;gap:16px;min-height:460px}
-.doc-item{padding:10px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--border);transition:all .15s;background:var(--surface);margin-bottom:6px;animation:fadein .2s ease}
-.doc-item:hover{border-color:var(--border2);background:var(--bg)}
-.doc-item.sel{background:var(--goldbg);border-color:var(--goldborder)}
+/* ── Vote overlay ── */
+.overlay{position:fixed;inset:0;background:rgba(44,37,32,.5);z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadein .18s ease}
+.v-modal{background:var(--surface);border-radius:14px;padding:28px;max-width:560px;width:100%;box-shadow:var(--sh2);animation:popin .22s ease;max-height:90vh;overflow-y:auto}
+.v-cand{display:flex;align-items:center;padding:11px 14px;border-radius:8px;border:2px solid var(--border);cursor:pointer;margin-bottom:8px;transition:all .14s;background:var(--surface);font-size:15px;font-weight:600}
+.v-cand:hover{border-color:var(--border2);background:var(--bg)}.v-cand.sel{border-color:var(--goldborder);background:var(--goldbg)}
+.v-bar-wrap{flex:1;background:var(--bg2);border-radius:4px;height:18px;overflow:hidden}
+.v-bar{height:100%;border-radius:4px;transition:width .8s ease}
 
-/* ══ VOTE ══ */
-.vote-overlay{position:fixed;inset:0;background:rgba(44,37,32,.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadein .2s ease}
-.vote-modal{background:var(--surface);border-radius:14px;padding:32px;max-width:600px;width:100%;box-shadow:var(--shadow2);animation:popIn .25s ease}
-.vote-candidate{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:2px solid var(--border);cursor:pointer;margin-bottom:8px;transition:all .15s;background:var(--surface)}
-.vote-candidate:hover{border-color:var(--border2);background:var(--bg)}
-.vote-candidate.selected{border-color:var(--goldborder);background:var(--goldbg)}
-.vote-bar-wrap{flex:1;background:var(--bg2);border-radius:4px;height:20px;overflow:hidden}
-.vote-bar{height:100%;border-radius:4px;transition:width .8s ease}
+/* ── Memo ── */
+.memo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.memo-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:var(--sh);animation:fadein .2s ease}
+.memo-card textarea{width:100%;border:none;background:transparent;color:var(--text);font-size:14px;line-height:1.7;resize:none;outline:none;min-height:110px}
 
-/* ══ MEMO ══ */
-.memo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.memo-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:var(--shadow);animation:fadein .2s ease}
-.memo-card textarea{width:100%;border:none;background:transparent;color:var(--text);font-size:14px;line-height:1.7;resize:none;outline:none;min-height:120px}
-
-@media(max-width:700px){
-  .docs-grid{grid-template-columns:1fr}
-  .topbar-inner{height:auto;padding:8px 0}
-  .timerbar-inner{gap:10px}
-}
+@media(max-width:680px){.docs-grid{grid-template-columns:1fr}.topbar-inner{height:auto;padding:8px 0;gap:8px}.timerbar-inner{gap:8px}}
 </style>
 </head>
 <body>
 
-<!-- ══ SETUP ══ -->
-<div id="setup">
+<!-- ══════════ SCREEN 1: TOP (create/join) ══════════ -->
+<div class="screen active" id="scr-top">
   <div class="setup-box">
-    <div class="setup-head">
-      <div style="font-family:'Cinzel',serif;font-size:10px;letter-spacing:.2em;color:var(--text3);margin-bottom:10px">◆ MURDER MYSTERY SYSTEM ◆</div>
+    <div class="s-head">
+      <div class="s-eyebrow">◆ MURDER MYSTERY SYSTEM ◆</div>
       <h1>犯人は誰だ</h1>
-      <div class="setup-divider"></div>
+      <div class="s-divider"></div>
       <p>マーダーミステリー リアルタイム進行管理</p>
     </div>
     <div class="mode-tabs">
-      <button class="mode-tab active" onclick="switchSetupMode('create')">🎲 ルームを作成</button>
-      <button class="mode-tab" onclick="switchSetupMode('join')">🚪 ルームに参加</button>
+      <button class="mode-tab active" onclick="switchTop('create')">🎲 ルームを作成</button>
+      <button class="mode-tab" onclick="switchTop('join')">🚪 ルームに参加</button>
     </div>
 
     <!-- CREATE -->
-    <div id="create-form" class="card">
-      <div style="margin-bottom:14px"><div class="label">シナリオタイトル</div><input class="inp" id="s-title" placeholder="例：嵐の館の殺人事件"></div>
-      <div style="margin-bottom:14px">
-        <div class="label">GMモード</div>
-        <div class="gm-mode-btns">
-          <button class="gm-mode-btn active" id="btn-gm" onclick="setGMMode('gm')">GM あり</button>
-          <button class="gm-mode-btn" id="btn-gmless" onclick="setGMMode('gmless')">GMレス</button>
+    <div id="top-create" class="card">
+      <div style="margin-bottom:13px"><div class="lbl">シナリオタイトル</div><input class="inp" id="s-title" placeholder="例：嵐の館の殺人事件"></div>
+      <div style="margin-bottom:13px">
+        <div class="lbl">GMモード</div>
+        <div class="gm-btns">
+          <button class="gm-btn active" id="btn-gm" onclick="setGMMode('gm')">GM あり</button>
+          <button class="gm-btn" id="btn-gmless" onclick="setGMMode('gmless')">GMレス</button>
         </div>
       </div>
       <div style="margin-bottom:18px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div class="label" style="margin:0">プレイヤー設定</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <div class="lbl" style="margin:0">プレイヤー設定</div>
           <button class="btn sm ghost" onclick="addPlayer()">＋ 追加</button>
         </div>
         <div id="player-list"></div>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">左：プレイヤー名　右：役職（同じ役職は選べません）</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px">左：プレイヤー名　右：役職名（自由入力・重複不可）</div>
       </div>
       <button class="btn primary full" onclick="createRoom()">ルームを作成する</button>
     </div>
 
     <!-- JOIN -->
-    <div id="join-form" class="card" style="display:none">
+    <div id="top-join" class="card" style="display:none">
       <div style="margin-bottom:14px">
-        <div class="label">ルームコード</div>
-        <input class="inp" id="j-code" placeholder="例：ABC123" style="text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:20px;letter-spacing:4px;text-align:center">
+        <div class="lbl">ルームコード</div>
+        <input class="inp" id="j-code" placeholder="ABC123" style="text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:5px;text-align:center">
       </div>
       <div id="join-err" style="color:var(--red);font-size:13px;margin-bottom:10px;display:none"></div>
       <button class="btn primary full" onclick="joinRoom()">参加する</button>
@@ -215,187 +198,201 @@ textarea.inp{resize:vertical}
   </div>
 </div>
 
-<!-- ══ APP ══ -->
-<div id="app">
-  <!-- Top bar -->
+<!-- ══════════ SCREEN 2: WHO ARE YOU ══════════ -->
+<div class="screen" id="scr-who">
+  <div class="who-box">
+    <div class="s-head" style="margin-bottom:24px">
+      <div class="s-eyebrow">ROOM: <span id="who-room-code" style="font-family:'JetBrains Mono',monospace;letter-spacing:3px;color:var(--gold)"></span></div>
+      <h1 style="font-size:24px">あなたは誰ですか？</h1>
+      <div class="s-divider"></div>
+      <p id="who-scenario" style="font-size:14px;font-weight:600;color:var(--text)"></p>
+    </div>
+    <div id="who-list"></div>
+  </div>
+</div>
+
+<!-- ══════════ SCREEN 3: MAIN APP ══════════ -->
+<div class="screen" id="scr-app">
+
+  <!-- Topbar -->
   <div class="topbar">
     <div class="topbar-inner">
-      <span class="topbar-title">◆ MMSystem</span>
-      <div class="topbar-sep"></div>
-      <span class="topbar-scenario" id="app-title"></span>
-      <div class="topbar-right">
+      <span class="t-title">◆ MMSystem</span>
+      <div class="t-sep"></div>
+      <span class="t-scenario" id="app-title"></span>
+      <span class="t-sep"></span>
+      <span class="t-who" id="app-who"></span>
+      <div class="t-right">
         <div class="room-chip">
           <span style="font-size:10px;color:var(--text3);font-weight:600">ROOM</span>
           <span class="code" id="room-code-disp"></span>
-          <button class="copy-btn" onclick="copyCode()" title="コピー">📋</button>
+          <button class="copy-btn" onclick="copyCode()">📋</button>
         </div>
-        <div class="sync-chip busy" id="sync-chip">
-          <div class="sync-dot"></div>
-          <span id="sync-txt">接続中…</span>
-        </div>
-        <div class="view-toggle" id="view-toggle" style="display:none">
-          <button class="view-btn active" id="gm-view-btn" onclick="setView('gm')">GM</button>
-          <button class="view-btn" id="pl-view-btn" onclick="setView('pl')">PL</button>
-        </div>
-        <button class="btn sm ghost" onclick="exitRoom()">退出</button>
+        <div class="sync-chip busy" id="sync-chip"><div class="sync-dot"></div><span id="sync-txt">接続中…</span></div>
+        <button class="btn sm ghost" onclick="leaveSession()">退出</button>
       </div>
     </div>
   </div>
 
-  <!-- Timer bar (always visible) -->
+  <!-- Timer bar -->
   <div class="timerbar">
     <div class="timerbar-inner">
-      <div class="timer-display" id="timer-disp">00:00</div>
-      <div class="timer-presets" id="timer-presets"></div>
-      <div class="timer-btns">
-        <button class="btn sm primary" id="timer-start-btn" onclick="toggleTimer()">▶ 開始</button>
+      <div class="timer-disp" id="timer-disp">00:00</div>
+      <div class="t-presets" id="t-presets"></div>
+      <div class="t-btns">
+        <button class="btn sm primary" id="t-start-btn" onclick="toggleTimer()">▶ 開始</button>
         <button class="btn sm ghost" onclick="resetTimer()">↺</button>
-        <button class="btn sm ghost" id="timer-mode-btn" onclick="toggleTimerMode()">▼ CD</button>
+        <button class="btn sm ghost" id="t-mode-btn" onclick="toggleTimerMode()">▼ CD</button>
       </div>
-      <div id="timer-alert" style="font-size:12px;font-weight:600;color:var(--red);display:none;animation:pulse .8s infinite">⚠ 残り時間わずか</div>
+      <div id="t-alert" style="font-size:12px;font-weight:600;color:var(--red);display:none;animation:pulse .8s infinite">⚠ 残り時間わずか</div>
     </div>
   </div>
 
   <!-- Players bar -->
-  <div class="playersbar">
-    <div class="playersbar-inner" id="players-bar"></div>
-  </div>
+  <div class="playersbar"><div class="playersbar-inner" id="players-bar"></div></div>
 
-  <!-- Tabs -->
-  <div class="tabs">
+  <!-- Tabs: GM -->
+  <div class="tabs" id="tabs-gm" style="display:none">
     <div class="tabs-inner">
-      <button class="tab-btn active" onclick="showTab('docs',this)">📄 資料配布</button>
-      <button class="tab-btn" onclick="showTab('timeline',this)">⏳ 時系列メモ</button>
-      <button class="tab-btn" onclick="showTab('vote',this)">🗳 投票管理</button>
-      <button class="tab-btn" onclick="showTab('memo',this)">📝 フリーメモ</button>
+      <button class="tab-btn active" onclick="showTab('gm-docs',this)">📄 資料管理</button>
+      <button class="tab-btn" onclick="showTab('gm-timeline',this)">⏳ 時系列</button>
+      <button class="tab-btn" onclick="showTab('gm-vote',this)">🗳 投票管理</button>
+      <button class="tab-btn" onclick="showTab('gm-memo',this)">📝 GMメモ</button>
     </div>
   </div>
 
-  <!-- Content -->
+  <!-- Tabs: PL -->
+  <div class="tabs" id="tabs-pl" style="display:none">
+    <div class="tabs-inner">
+      <button class="tab-btn active" onclick="showTab('pl-docs',this)">📄 自分の資料</button>
+      <button class="tab-btn" onclick="showTab('pl-timeline',this)">⏳ 時系列</button>
+      <button class="tab-btn" onclick="showTab('pl-memo',this)">📝 個人メモ</button>
+    </div>
+  </div>
+
   <div class="content">
 
-    <!-- DOCS -->
-    <div class="panel active" id="panel-docs">
-      <div class="panel-title">📄 資料配布</div>
+    <!-- ── GM: 資料管理 ── -->
+    <div class="panel active" id="panel-gm-docs">
+      <div class="p-title">📄 資料管理</div>
       <div class="docs-grid">
         <div>
-          <div id="pl-char-wrap" style="margin-bottom:12px;display:none">
-            <div class="label">あなたのキャラクター</div>
-            <select class="sel" id="viewing-pl" onchange="renderDocList()"></select>
-          </div>
-          <div id="gm-add-doc-btn" style="margin-bottom:10px">
-            <button class="btn primary full" onclick="showAddDoc()">＋ 資料を追加</button>
-          </div>
-          <div id="doc-list"></div>
+          <button class="btn primary full" style="margin-bottom:10px" onclick="showAddDoc()">＋ 資料を追加</button>
+          <div id="gm-doc-list"></div>
         </div>
-        <div id="doc-viewer"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:14px">資料を選択してください</div></div>
+        <div id="gm-doc-viewer"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:14px">資料を選択してください</div></div>
       </div>
-      <div id="add-doc-form" class="card" style="display:none;margin-top:16px">
-        <div style="font-weight:600;font-size:15px;margin-bottom:14px">資料を追加</div>
-        <div style="margin-bottom:12px"><div class="label">タイトル</div><input class="inp" id="doc-title" placeholder="資料のタイトル"></div>
-        <div style="margin-bottom:12px">
-          <div class="label">配布先</div>
+      <div id="add-doc-form" class="card" style="display:none;margin-top:14px">
+        <div style="font-weight:600;font-size:15px;margin-bottom:13px">資料を追加</div>
+        <div style="margin-bottom:11px"><div class="lbl">タイトル</div><input class="inp" id="doc-title" placeholder="資料タイトル"></div>
+        <div style="margin-bottom:11px">
+          <div class="lbl">配布先</div>
           <select class="sel" id="doc-target"></select>
         </div>
-        <div style="margin-bottom:12px"><div class="label">ファイル（PDF / テキスト）</div><input type="file" id="doc-file" accept=".pdf,.txt,.md" onchange="handleDocFile()" style="font-size:13px;color:var(--text2)"></div>
-        <div style="margin-bottom:14px"><div class="label">またはテキスト入力</div><textarea class="inp" id="doc-content" rows="6" placeholder="内容を直接入力…"></textarea></div>
+        <div style="margin-bottom:11px"><div class="lbl">ファイル（PDF / テキスト）</div><input type="file" id="doc-file" accept=".pdf,.txt,.md" onchange="handleDocFile()" style="font-size:13px;color:var(--text2)"></div>
+        <div style="margin-bottom:13px"><div class="lbl">またはテキスト入力</div><textarea class="inp" id="doc-content" rows="5" placeholder="内容を直接入力…"></textarea></div>
         <div style="display:flex;gap:8px"><button class="btn primary" onclick="saveDoc()">保存</button><button class="btn ghost" onclick="hideAddDoc()">キャンセル</button></div>
       </div>
     </div>
 
-    <!-- TIMELINE -->
-    <div class="panel" id="panel-timeline">
-      <div class="panel-title">⏳ 時系列メモ</div>
-      <div class="card" style="margin-bottom:16px">
-        <div style="display:grid;grid-template-columns:100px 1fr 1fr;gap:10px;margin-bottom:10px">
-          <div><div class="label">時刻</div><input class="inp" id="tl-time" placeholder="10:30"></div>
-          <div>
-            <div class="label">キャラクター</div>
-            <select class="sel" id="tl-player"><option value="">全員 / 不明</option></select>
-          </div>
-          <div>
-            <div class="label">タグ</div>
-            <select class="sel" id="tl-tag">
-              <option>情報</option><option>アリバイ</option><option>証拠</option><option>疑惑</option><option>重要</option><option>その他</option>
-            </select>
-          </div>
+    <!-- ── GM: 時系列 ── -->
+    <div class="panel" id="panel-gm-timeline">
+      <div class="p-title">⏳ 時系列メモ</div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:95px 1fr 1fr;gap:9px;margin-bottom:9px">
+          <div><div class="lbl">時刻</div><input class="inp" id="tl-time" placeholder="10:30"></div>
+          <div><div class="lbl">キャラクター</div><select class="sel" id="tl-player"><option value="">全員 / 不明</option></select></div>
+          <div><div class="lbl">タグ</div><select class="sel" id="tl-tag"><option>情報</option><option>アリバイ</option><option>証拠</option><option>疑惑</option><option>重要</option><option>その他</option></select></div>
         </div>
         <div style="display:flex;gap:8px;align-items:flex-end">
-          <textarea class="inp" id="tl-content" rows="2" placeholder="内容を入力…" style="flex:1"></textarea>
+          <textarea class="inp" id="tl-content" rows="2" placeholder="内容…" style="flex:1"></textarea>
           <button class="btn primary" onclick="addTL()">＋ 追加</button>
         </div>
       </div>
       <div class="tl-wrap"><div class="tl-line"></div><div id="tl-list"></div></div>
     </div>
 
-    <!-- VOTE (GM management) -->
-    <div class="panel" id="panel-vote">
-      <div class="panel-title">🗳 投票管理</div>
-      <div id="gm-vote-panel" style="display:none">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-          <!-- Candidates -->
-          <div class="card">
-            <div style="font-weight:600;font-size:14px;margin-bottom:12px">候補者リスト</div>
-            <div style="display:flex;gap:8px;margin-bottom:12px">
-              <input class="inp" id="cand-input" placeholder="候補者名を入力" style="flex:1">
-              <button class="btn primary sm" onclick="addCandidate()">＋追加</button>
-            </div>
-            <div id="cand-list"></div>
+    <!-- ── GM: 投票管理 ── -->
+    <div class="panel" id="panel-gm-vote">
+      <div class="p-title">🗳 投票管理</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="card">
+          <div style="font-weight:600;font-size:14px;margin-bottom:11px">候補者リスト</div>
+          <div style="display:flex;gap:7px;margin-bottom:11px">
+            <input class="inp" id="cand-inp" placeholder="候補者名" style="flex:1">
+            <button class="btn primary sm" onclick="addCand()">＋</button>
           </div>
-          <!-- Controls -->
-          <div class="card">
-            <div style="font-weight:600;font-size:14px;margin-bottom:12px">投票コントロール</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <button class="btn success full" onclick="startVote()" id="start-vote-btn">▶ 投票開始</button>
-              <button class="btn danger full" onclick="stopVote()" id="stop-vote-btn" disabled>⏹ 投票終了</button>
-              <button class="btn full" onclick="revealVote()" id="reveal-vote-btn" disabled>👁 結果を全員に表示</button>
-              <button class="btn ghost full" onclick="resetVote()">↺ リセット</button>
-            </div>
-            <div id="vote-status-gm" style="margin-top:14px;padding:10px;background:var(--bg2);border-radius:6px;font-size:13px;color:var(--text2)">投票未開始</div>
-          </div>
+          <div id="cand-list"></div>
         </div>
-        <!-- Results always visible to GM -->
-        <div class="card" id="gm-results" style="display:none">
-          <div style="font-weight:600;font-size:14px;margin-bottom:14px">得票結果</div>
-          <div id="gm-results-inner"></div>
+        <div class="card">
+          <div style="font-weight:600;font-size:14px;margin-bottom:11px">コントロール</div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <button class="btn success full" id="btn-start-vote" onclick="startVote()">▶ 投票開始</button>
+            <button class="btn danger full" id="btn-stop-vote" onclick="stopVote()" disabled>⏹ 投票終了</button>
+            <button class="btn full" id="btn-reveal-vote" onclick="revealVote()" disabled>👁 結果を全員に表示</button>
+            <button class="btn ghost full" onclick="resetVote()">↺ リセット</button>
+          </div>
+          <div id="vote-status-gm" style="margin-top:12px;padding:9px;background:var(--bg2);border-radius:6px;font-size:13px;color:var(--text2)">投票未開始</div>
         </div>
       </div>
-      <!-- PL view -->
-      <div id="pl-vote-panel">
-        <div class="card" style="text-align:center;padding:40px;color:var(--text3)">
-          <div style="font-size:32px;margin-bottom:12px">🗳</div>
-          <div style="font-size:15px">GMが投票を開始するとここに投票画面が表示されます</div>
-        </div>
+      <div class="card" id="gm-results" style="display:none">
+        <div style="font-weight:600;font-size:14px;margin-bottom:13px">得票結果</div>
+        <div id="gm-results-inner"></div>
       </div>
     </div>
 
-    <!-- MEMO -->
-    <div class="panel" id="panel-memo">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <div class="panel-title" style="margin:0">📝 フリーメモ</div>
-        <button class="btn sm primary" onclick="addMemo()">＋ メモを追加</button>
+    <!-- ── GM: メモ ── -->
+    <div class="panel" id="panel-gm-memo">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div class="p-title" style="margin:0">📝 GMメモ（GM専用）</div>
+        <button class="btn sm primary" onclick="addMemo('gm')">＋ 追加</button>
       </div>
-      <div class="memo-grid" id="memo-grid"></div>
+      <div class="memo-grid" id="gm-memo-grid"></div>
+    </div>
+
+    <!-- ── PL: 自分の資料 ── -->
+    <div class="panel" id="panel-pl-docs">
+      <div class="p-title">📄 自分の資料</div>
+      <div class="docs-grid">
+        <div><div id="pl-doc-list"></div></div>
+        <div id="pl-doc-viewer"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:14px">資料を選択してください</div></div>
+      </div>
+    </div>
+
+    <!-- ── PL: 時系列（閲覧のみ） ── -->
+    <div class="panel" id="panel-pl-timeline">
+      <div class="p-title">⏳ 時系列メモ <span style="font-size:12px;font-weight:400;color:var(--text3)">(閲覧のみ)</span></div>
+      <div class="tl-wrap"><div class="tl-line"></div><div id="pl-tl-list"></div></div>
+    </div>
+
+    <!-- ── PL: 個人メモ ── -->
+    <div class="panel" id="panel-pl-memo">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+        <div class="p-title" style="margin:0">📝 個人メモ（自分だけが見える）</div>
+        <button class="btn sm primary" onclick="addMemo('pl')">＋ 追加</button>
+      </div>
+      <div class="memo-grid" id="pl-memo-grid"></div>
     </div>
 
   </div><!-- /content -->
-</div><!-- /app -->
+</div><!-- /scr-app -->
 
-<!-- ══ VOTE OVERLAY (for PL) ══ -->
+<!-- ── VOTE OVERLAY (PL) ── -->
 <div id="vote-overlay" style="display:none">
-  <div class="vote-overlay">
-    <div class="vote-modal">
-      <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:600;margin-bottom:6px;color:var(--text)">🗳 投票</div>
-      <div style="font-size:13px;color:var(--text3);margin-bottom:20px">犯人だと思う人物を選んでください（1名のみ）</div>
-      <div id="vote-candidates-pl"></div>
-      <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
-        <button class="btn primary" onclick="submitVote()" id="submit-vote-btn">投票する</button>
+  <div class="overlay">
+    <div class="v-modal">
+      <div style="font-family:'Cinzel',serif;font-size:18px;font-weight:600;margin-bottom:5px">🗳 投票</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:18px">犯人だと思う人物を1名選んでください</div>
+      <div id="v-cands"></div>
+      <div id="v-submit-row" style="margin-top:14px;display:flex;justify-content:flex-end">
+        <button class="btn primary" onclick="submitVote()">投票する</button>
       </div>
-      <div id="vote-submitted-msg" style="display:none;text-align:center;padding:20px">
-        <div style="font-size:24px;margin-bottom:8px">✅</div>
+      <div id="v-voted-msg" style="display:none;text-align:center;padding:18px">
+        <div style="font-size:22px;margin-bottom:8px">✅</div>
         <div style="font-weight:600;color:var(--green)">投票しました</div>
-        <div style="font-size:13px;color:var(--text3);margin-top:4px">結果はGMが発表します</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">GMが結果を発表するまでお待ちください</div>
       </div>
+      <div id="v-result-area" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -415,46 +412,51 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ══ STATE ══
-let roomId=null, isGM=false, isGMView=true, players=[], gmMode='gm';
-let selectedDocKey=null, docsData={}, memoData={};
+let roomId=null, meId=null, meName=null, meRole=null, meIsGM=false;
+let players=[], gmMode='gm', roomTitle='';
+let docsData={}, tlData={}, voteData={}, gmMemoData={}, plMemoData={};
+let selDocKey=null;
 let timerSec=0, timerRunning=false, timerCountdown=false, timerPreset=0, timerInterval=null;
-let voteData={}, myVote=null, hasVoted=false;
+let myVote=null, hasVoted=false, votingFor=null;
 const COLORS=['#8B1A1A','#1A3D6B','#1A6B3A','#8B6914','#5B1A6B','#6B3D1A','#1A5B6B','#3D1A6B'];
 const TAG_COLORS={情報:'#1A3D6B',アリバイ:'#1A6B3A',証拠:'#8B6914',疑惑:'#8B1A1A',重要:'#6B1A1A',その他:'#6B6058'};
-const ROLES=['探偵','被害者','犯人','共犯者','目撃者','医師','執事','令嬢','使用人','警官','記者','謎の人物'];
-
-// ══ SETUP UI ══
 let gmModeVal='gm';
 let playerList=[{id:'p1',name:'プレイヤーA',role:''},{id:'p2',name:'プレイヤーB',role:''}];
+let memoTimers={};
 
-function switchSetupMode(m){
+// ══ SCREEN HELPER ══
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  const el=document.getElementById(id);
+  if(id==='scr-app'){el.style.display='flex';el.style.flexDirection='column';}
+  else{el.style.display='flex';el.classList.add('active');}
+}
+
+// ══ SETUP ══
+function switchTop(m){
   document.querySelectorAll('.mode-tab').forEach((b,i)=>b.classList.toggle('active',i===(m==='create'?0:1)));
-  document.getElementById('create-form').style.display=m==='create'?'block':'none';
-  document.getElementById('join-form').style.display=m==='join'?'block':'none';
+  document.getElementById('top-create').style.display=m==='create'?'block':'none';
+  document.getElementById('top-join').style.display=m==='join'?'block':'none';
 }
 function setGMMode(v){
   gmModeVal=v;
   document.getElementById('btn-gm').classList.toggle('active',v==='gm');
   document.getElementById('btn-gmless').classList.toggle('active',v==='gmless');
 }
-function getUsedRoles(excludeIdx){
-  return playerList.filter((_,i)=>i!==excludeIdx).map(p=>p.role).filter(Boolean);
-}
 function renderPlayerList(){
-  const usedRoles=playerList.map(p=>p.role).filter(Boolean);
   document.getElementById('player-list').innerHTML=playerList.map((p,i)=>`
     <div class="player-row">
       <input class="inp" value="${p.name}" oninput="playerList[${i}].name=this.value" placeholder="プレイヤー${i+1}">
-      <select class="sel" onchange="setRole(${i},this.value)">
-        <option value="">役職なし</option>
-        ${ROLES.map(r=>`<option value="${r}" ${p.role===r?'selected':''} ${usedRoles.includes(r)&&p.role!==r?'disabled':''} >${r}${usedRoles.includes(r)&&p.role!==r?' (使用中)':''}</option>`).join('')}
-      </select>
+      <input class="inp" value="${p.role||''}" oninput="setRole(${i},this.value)" placeholder="役職名（任意）" id="ri-${i}">
       <button class="btn sm ghost" onclick="removePlayer(${i})" ${playerList.length<=2?'disabled':''}>✕</button>
     </div>`).join('');
 }
-function setRole(i,v){
-  playerList[i].role=v;
-  renderPlayerList();
+function setRole(i,val){
+  const v=val.trim();
+  const dup=playerList.some((p,j)=>j!==i&&p.role&&p.role===v);
+  const el=document.getElementById('ri-'+i);
+  if(dup){el.style.borderColor='var(--red)';el.title='この役職は使用中です';}
+  else{el.style.borderColor='';el.title='';playerList[i].role=v;}
 }
 function addPlayer(){
   if(playerList.length>=8)return;
@@ -465,82 +467,91 @@ function addPlayer(){
 function removePlayer(i){if(playerList.length<=2)return;playerList.splice(i,1);renderPlayerList();}
 renderPlayerList();
 
-// ══ CREATE / JOIN ══
 async function createRoom(){
   const title=document.getElementById('s-title').value.trim();
   if(!title||playerList.length<2){alert('タイトルを入力してください');return;}
   const code=Math.random().toString(36).substr(2,6).toUpperCase();
-  const data={title,gmMode:gmModeVal,players:playerList,createdAt:Date.now(),
+  // Add GM as a special "player" entry if gm mode
+  const finalPlayers=[...playerList];
+  if(gmModeVal==='gm') finalPlayers.unshift({id:'gm',name:'GM',role:'GM',isGM:true});
+  const data={title,gmMode:gmModeVal,players:finalPlayers,createdAt:Date.now(),
     timer:{sec:0,running:false,isCountdown:false,presetMin:0},
     vote:{phase:'idle',candidates:{}}};
   await db.ref('rooms/'+code).set(data);
-  enterRoom(code,data,true);
+  goToWho(code,data);
 }
 async function joinRoom(){
   const code=document.getElementById('j-code').value.toUpperCase().trim();
   if(!code)return;
   const snap=await db.ref('rooms/'+code).once('value');
   const data=snap.val();
-  if(!data){
-    const e=document.getElementById('join-err');
-    e.textContent='ルームが見つかりません';e.style.display='block';return;
-  }
-  enterRoom(code,data,false);
+  if(!data){const e=document.getElementById('join-err');e.textContent='ルームが見つかりません';e.style.display='block';return;}
+  goToWho(code,data);
 }
-function enterRoom(code,data,asGM){
-  roomId=code; isGM=asGM; isGMView=asGM&&data.gmMode==='gm';
-  players=data.players||[]; gmMode=data.gmMode;
-  document.getElementById('setup').style.display='none';
-  document.getElementById('app').style.display='flex';
-  document.getElementById('app').style.flexDirection='column';
-  document.getElementById('app-title').textContent=data.title;
-  document.getElementById('room-code-disp').textContent=code;
-  if(gmMode==='gm') document.getElementById('view-toggle').style.display='flex';
-  setView(isGMView?'gm':'pl');
+
+// ══ WHO SCREEN ══
+function goToWho(code,data){
+  roomId=code; players=data.players||[]; gmMode=data.gmMode; roomTitle=data.title;
+  document.getElementById('who-room-code').textContent=code;
+  document.getElementById('who-scenario').textContent=data.title;
+  // Build who list
+  const list=document.getElementById('who-list');
+  list.innerHTML=players.map((p,i)=>{
+    const col=COLORS[i%COLORS.length];
+    const isGMEntry=p.isGM||p.id==='gm';
+    return `<div class="who-card ${isGMEntry?'gm-card':''}" onclick="selectWho('${p.id}','${p.name}','${p.role||''}',${!!isGMEntry})">
+      <div class="who-avatar" style="background:${col}18;color:${col}">${isGMEntry?'👑':p.name.charAt(0)}</div>
+      <div>
+        <div style="font-weight:700;font-size:16px">${p.name}</div>
+        ${p.role&&!isGMEntry?`<div style="font-size:12px;color:var(--text3)">${p.role}</div>`:''}
+        ${isGMEntry?`<div style="font-size:12px;color:var(--gold);font-weight:600">ゲームマスター</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  showScreen('scr-who');
+}
+
+function selectWho(id,name,role,isGM){
+  meId=id; meName=name; meRole=role; meIsGM=isGM;
+  enterApp();
+}
+
+// ══ ENTER APP ══
+function enterApp(){
+  document.getElementById('app-title').textContent=roomTitle;
+  document.getElementById('app-who').textContent=meName+(meRole&&!meIsGM?' ('+meRole+')':'');
+  document.getElementById('room-code-disp').textContent=roomId;
+  // Show correct tabs
+  document.getElementById('tabs-gm').style.display=meIsGM?'block':'none';
+  document.getElementById('tabs-pl').style.display=meIsGM?'none':'block';
+  // Activate correct first panel
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  if(meIsGM) document.getElementById('panel-gm-docs').classList.add('active');
+  else document.getElementById('panel-pl-docs').classList.add('active');
   renderPlayersBar();
   populateSelects();
   renderTimerPresets();
   subscribeAll();
-}
-function exitRoom(){
-  if(timerInterval)clearInterval(timerInterval);
-  roomId=null;
-  document.getElementById('setup').style.display='flex';
-  document.getElementById('app').style.display='none';
-  document.getElementById('vote-overlay').style.display='none';
-}
-function copyCode(){
-  navigator.clipboard?.writeText(roomId);
-  const b=document.querySelector('.copy-btn');
-  b.textContent='✅';setTimeout(()=>b.textContent='📋',1500);
+  showScreen('scr-app');
 }
 
-// ══ VIEW ══
-function setView(v){
-  isGMView=v==='gm';
-  document.getElementById('gm-view-btn').classList.toggle('active',isGMView);
-  document.getElementById('pl-view-btn').classList.toggle('active',!isGMView);
-  document.getElementById('gm-add-doc-btn').style.display=isGMView?'block':'none';
-  document.getElementById('pl-char-wrap').style.display=isGMView?'none':'block';
-  document.getElementById('gm-vote-panel').style.display=isGMView?'block':'none';
-  document.getElementById('pl-vote-panel').style.display=isGMView?'none':'block';
-  renderDocList();
+function leaveSession(){
+  if(timerInterval)clearInterval(timerInterval);
+  roomId=null;meId=null;meName=null;meIsGM=false;
+  document.getElementById('vote-overlay').style.display='none';
+  showScreen('scr-top');
 }
+function copyCode(){navigator.clipboard?.writeText(roomId);const b=document.querySelector('.copy-btn');b.textContent='✅';setTimeout(()=>b.textContent='📋',1400);}
 
 // ══ PLAYERS BAR ══
 function renderPlayersBar(){
-  document.getElementById('players-bar').innerHTML=players.map((p,i)=>`
-    <div class="player-pill" style="background:${COLORS[i%COLORS.length]}18;border:1px solid ${COLORS[i%COLORS.length]}44;color:${COLORS[i%COLORS.length]}">
-      <span style="font-weight:700">${p.name}</span>${p.role?` <span style="opacity:.7;font-size:11px">／${p.role}</span>`:''}
-    </div>`).join('');
-}
-
-function populateSelects(){
-  const nameOpts=players.map(p=>`<option value="${p.name}">${p.name}${p.role?' ('+p.role+')':''}</option>`).join('');
-  const idOpts=players.map(p=>`<option value="${p.id}">${p.name}${p.role?' ('+p.role+')':''}</option>`).join('');
-  document.getElementById('viewing-pl').innerHTML='<option value="">選択してください</option>'+idOpts;
-  document.getElementById('tl-player').innerHTML='<option value="">全員 / 不明</option>'+nameOpts;
-  document.getElementById('doc-target').innerHTML='<option value="all">全員</option>'+idOpts;
+  document.getElementById('players-bar').innerHTML=players.map((p,i)=>{
+    const col=COLORS[i%COLORS.length];
+    const isMe=p.id===meId;
+    return `<div class="p-pill ${isMe?'me':''}" style="background:${col}18;border:1px solid ${col}44;color:${col}">
+      ${isMe?'▶ ':''}<span style="font-weight:${isMe?700:600}">${p.name}</span>${p.role&&!p.isGM?` <span style="opacity:.6;font-size:11px">／${p.role}</span>`:''}
+    </div>`;
+  }).join('');
 }
 
 function setSynced(ok){
@@ -550,34 +561,49 @@ function setSynced(ok){
 }
 
 function showTab(id,btn){
+  // Determine correct panel group
+  const prefix=meIsGM?'gm':'pl';
+  document.querySelectorAll('.panel').forEach(p=>{if(p.id.startsWith('panel-'+prefix)||p.id.startsWith('panel-'+prefix)) p.classList.remove('active');});
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
+  const tabs=document.getElementById(meIsGM?'tabs-gm':'tabs-pl');
+  tabs.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
+}
+
+function populateSelects(){
+  const plrs=players.filter(p=>!p.isGM);
+  const nameOpts=plrs.map(p=>`<option value="${p.name}">${p.name}${p.role?' ('+p.role+')':''}</option>`).join('');
+  const idOpts=plrs.map(p=>`<option value="${p.id}">${p.name}${p.role?' ('+p.role+')':''}</option>`).join('');
+  const tlPl=document.getElementById('tl-player');if(tlPl)tlPl.innerHTML='<option value="">全員 / 不明</option>'+nameOpts;
+  const dt=document.getElementById('doc-target');if(dt)dt.innerHTML='<option value="all">全員</option>'+idOpts;
 }
 
 // ══ FIREBASE SUBSCRIPTIONS ══
 function subscribeAll(){
-  db.ref('rooms/'+roomId).on('value',snap=>{setSynced(true);});
+  db.ref('rooms/'+roomId).on('value',()=>setSynced(true));
   db.ref('rooms/'+roomId+'/timer').on('value',snap=>{
     const d=snap.val();if(!d)return;
     if(!timerRunning){timerSec=d.sec||0;timerCountdown=d.isCountdown||false;timerPreset=d.presetMin||0;renderTimerDisp();}
-    if(d.running!==timerRunning)syncTimerRunning(d.running);
+    if(d.running!==timerRunning)syncTimerRun(d.running);
   });
-  db.ref('rooms/'+roomId+'/vote').on('value',snap=>{
-    voteData=snap.val()||{phase:'idle',candidates:{}};
-    renderVoteGM();
-    renderVotePL();
-  });
-  db.ref('rooms/'+roomId+'/timeline').on('value',snap=>renderTL(snap.val()||{}));
+  db.ref('rooms/'+roomId+'/vote').on('value',snap=>{voteData=snap.val()||{phase:'idle'};renderVoteGM();renderVotePL();});
+  db.ref('rooms/'+roomId+'/timeline').on('value',snap=>{tlData=snap.val()||{};renderTL();});
   db.ref('rooms/'+roomId+'/docs').on('value',snap=>{docsData=snap.val()||{};renderDocList();});
-  db.ref('rooms/'+roomId+'/memos').on('value',snap=>{memoData=snap.val()||{};renderMemos();});
+  // GM memo: only GM subscribes
+  if(meIsGM){
+    db.ref('rooms/'+roomId+'/gm-memos').on('value',snap=>{gmMemoData=snap.val()||{};renderMemos('gm');});
+  }
+  // PL personal memo: keyed by player id
+  if(!meIsGM){
+    db.ref('rooms/'+roomId+'/pl-memos/'+meId).on('value',snap=>{plMemoData=snap.val()||{};renderMemos('pl');});
+  }
 }
 
 // ══ TIMER ══
 function renderTimerPresets(){
-  document.getElementById('timer-presets').innerHTML=[5,10,15,20,30,60].map(p=>
-    `<button class="timer-preset-btn${timerPreset===p&&timerCountdown?' active':''}" onclick="setTimerPreset(${p})">${p}分</button>`).join('');
+  document.getElementById('t-presets').innerHTML=[5,10,15,20,30,60].map(p=>
+    `<button class="t-preset${timerPreset===p&&timerCountdown?' on':''}" onclick="setTimerPreset(${p})">${p}分</button>`).join('');
 }
 function setTimerPreset(min){
   timerPreset=min;timerCountdown=true;timerSec=min*60;
@@ -588,27 +614,16 @@ function setTimerPreset(min){
 function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return h>0?[h,m,sc].map(n=>String(n).padStart(2,'0')).join(':'):[m,sc].map(n=>String(n).padStart(2,'0')).join(':');}
 function renderTimerDisp(){
   const el=document.getElementById('timer-disp');
-  const alert=document.getElementById('timer-alert');
-  const isAlert=timerCountdown&&timerSec<=60&&timerSec>0&&timerRunning;
-  el.textContent=fmt(timerSec);
-  el.className='timer-display'+(isAlert?' alert':'');
-  alert.style.display=isAlert?'block':'none';
-  document.getElementById('timer-start-btn').textContent=timerRunning?'⏸ 停止':'▶ 開始';
-  document.getElementById('timer-start-btn').className='btn sm '+(timerRunning?'danger':'primary');
-  document.getElementById('timer-mode-btn').textContent=timerCountdown?'▲ CU':'▼ CD';
+  const al=document.getElementById('t-alert');
+  const isAl=timerCountdown&&timerSec<=60&&timerSec>0&&timerRunning;
+  el.textContent=fmt(timerSec);el.className='timer-disp'+(isAl?' alert':'');
+  al.style.display=isAl?'block':'none';
+  document.getElementById('t-start-btn').textContent=timerRunning?'⏸ 停止':'▶ 開始';
+  document.getElementById('t-start-btn').className='btn sm '+(timerRunning?'danger':'primary');
+  document.getElementById('t-mode-btn').textContent=timerCountdown?'▲ CU':'▼ CD';
 }
-function toggleTimer(){
-  timerRunning=!timerRunning;
-  db.ref('rooms/'+roomId+'/timer').update({running:timerRunning});
-  if(timerRunning)startLocalTimer();else{clearInterval(timerInterval);timerInterval=null;}
-  renderTimerDisp();
-}
-function syncTimerRunning(running){
-  if(running===timerRunning)return;
-  timerRunning=running;
-  if(running)startLocalTimer();else{clearInterval(timerInterval);timerInterval=null;}
-  renderTimerDisp();
-}
+function toggleTimer(){timerRunning=!timerRunning;db.ref('rooms/'+roomId+'/timer').update({running:timerRunning});if(timerRunning)startLocalTimer();else{clearInterval(timerInterval);timerInterval=null;}renderTimerDisp();}
+function syncTimerRun(r){if(r===timerRunning)return;timerRunning=r;if(r)startLocalTimer();else{clearInterval(timerInterval);timerInterval=null;}renderTimerDisp();}
 function startLocalTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
@@ -616,15 +631,8 @@ function startLocalTimer(){
     db.ref('rooms/'+roomId+'/timer/sec').set(timerSec);renderTimerDisp();
   },1000);
 }
-function resetTimer(){
-  clearInterval(timerInterval);timerInterval=null;timerRunning=false;
-  timerSec=timerPreset?timerPreset*60:0;
-  db.ref('rooms/'+roomId+'/timer').update({sec:timerSec,running:false});renderTimerDisp();
-}
-function toggleTimerMode(){
-  timerCountdown=!timerCountdown;clearInterval(timerInterval);timerInterval=null;timerRunning=false;timerSec=0;
-  db.ref('rooms/'+roomId+'/timer').update({isCountdown:timerCountdown,sec:0,running:false});renderTimerDisp();
-}
+function resetTimer(){clearInterval(timerInterval);timerInterval=null;timerRunning=false;timerSec=timerPreset?timerPreset*60:0;db.ref('rooms/'+roomId+'/timer').update({sec:timerSec,running:false});renderTimerDisp();}
+function toggleTimerMode(){timerCountdown=!timerCountdown;clearInterval(timerInterval);timerInterval=null;timerRunning=false;timerSec=0;db.ref('rooms/'+roomId+'/timer').update({isCountdown:timerCountdown,sec:0,running:false});renderTimerDisp();}
 
 // ══ DOCS ══
 function showAddDoc(){document.getElementById('add-doc-form').style.display='block';}
@@ -635,56 +643,64 @@ function handleDocFile(){
   reader.onload=ev=>{
     document.getElementById('doc-title').value=file.name.replace(/\.[^.]+$/,'');
     const ct=document.getElementById('doc-content');
-    ct.value=file.type==='application/pdf'?'[PDFファイル]':ev.target.result;
     ct.dataset.fileType=file.type==='application/pdf'?'pdf':'text';
     ct.dataset.fileData=ev.target.result;
+    ct.value=file.type==='application/pdf'?'[PDFファイル読み込み済]':ev.target.result;
   };
   if(file.type==='application/pdf')reader.readAsDataURL(file);else reader.readAsText(file);
 }
 function saveDoc(){
   const title=document.getElementById('doc-title').value.trim();if(!title)return;
   const ct=document.getElementById('doc-content');
-  const fileType=ct.dataset.fileType||'text';
-  const content=ct.dataset.fileData||ct.value;
-  const targetId=document.getElementById('doc-target').value;
-  db.ref('rooms/'+roomId+'/docs').push({title,content,targetId,fileType,ts:Date.now()});
-  document.getElementById('doc-title').value='';ct.value='';
-  delete ct.dataset.fileType;delete ct.dataset.fileData;
+  db.ref('rooms/'+roomId+'/docs').push({title,content:ct.dataset.fileData||ct.value,targetId:document.getElementById('doc-target').value,fileType:ct.dataset.fileType||'text',ts:Date.now()});
+  document.getElementById('doc-title').value='';ct.value='';delete ct.dataset.fileType;delete ct.dataset.fileData;
   hideAddDoc();
 }
 function deleteDoc(key){
   db.ref('rooms/'+roomId+'/docs/'+key).remove();
-  if(selectedDocKey===key){selectedDocKey=null;document.getElementById('doc-viewer').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:14px">資料を選択してください</div>';}
+  if(selDocKey===key){selDocKey=null;document.getElementById(meIsGM?'gm-doc-viewer':'pl-doc-viewer').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:14px">資料を選択してください</div>';}
 }
 function renderDocList(){
-  const docs=Object.entries(docsData).map(([k,v])=>({...v,key:k}));
-  const viewingPid=document.getElementById('viewing-pl')?.value;
-  const visible=isGMView?docs:docs.filter(d=>d.targetId==='all'||d.targetId===viewingPid);
-  document.getElementById('doc-list').innerHTML=visible.length===0
-    ?`<div style="color:var(--text3);font-size:13px;font-style:italic;padding:12px;text-align:center">資料がありません</div>`
-    :visible.map(d=>`
-      <div class="doc-item ${selectedDocKey===d.key?'sel':''}" onclick="selectDoc('${d.key}')">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:2px">${d.fileType==='pdf'?'📄':'📝'} ${d.title}</div>
-            <div style="font-size:11px;color:var(--text3)">${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.name||'指定PL'}</div>
-          </div>
-          ${isGMView?`<button onclick="event.stopPropagation();deleteDoc('${d.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px">✕</button>`:''}
-        </div>
-      </div>`).join('');
+  // GM: all docs
+  const all=Object.entries(docsData).map(([k,v])=>({...v,key:k}));
+  // GM list
+  const gEl=document.getElementById('gm-doc-list');
+  if(gEl){
+    gEl.innerHTML=all.length===0?'<div style="color:var(--text3);font-size:13px;font-style:italic;padding:10px">資料がありません</div>'
+      :all.map(d=>docItem(d,'gm')).join('');
+  }
+  // PL list: only docs for this player or all
+  const plEl=document.getElementById('pl-doc-list');
+  if(plEl){
+    const mine=all.filter(d=>d.targetId==='all'||d.targetId===meId);
+    plEl.innerHTML=mine.length===0?'<div style="color:var(--text3);font-size:13px;font-style:italic;padding:10px">あなた宛の資料はまだありません</div>'
+      :mine.map(d=>docItem(d,'pl')).join('');
+  }
 }
-function selectDoc(key){
-  selectedDocKey=key;renderDocList();
+function docItem(d,ctx){
+  return `<div class="doc-item ${selDocKey===d.key?'sel':''}" onclick="selectDoc('${d.key}','${ctx}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px">${d.fileType==='pdf'?'📄':'📝'} ${d.title}</div>
+        <div style="font-size:11px;color:var(--text3)">${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.name||'指定PL'}</div>
+      </div>
+      ${ctx==='gm'?`<button onclick="event.stopPropagation();deleteDoc('${d.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>`:''}
+    </div>
+  </div>`;
+}
+function selectDoc(key,ctx){
+  selDocKey=key;renderDocList();
   const d=docsData[key];if(!d)return;
-  document.getElementById('doc-viewer').innerHTML=`
+  const viewerId=ctx==='gm'?'gm-doc-viewer':'pl-doc-viewer';
+  document.getElementById(viewerId).innerHTML=`
     <div class="card" style="height:100%;display:flex;flex-direction:column">
-      <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
-        <div style="font-weight:600;font-size:16px;margin-bottom:3px">${d.title}</div>
-        <div style="font-size:12px;color:var(--text3)">配布先: ${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.name||'指定PL'}</div>
+      <div style="margin-bottom:11px;padding-bottom:11px;border-bottom:1px solid var(--border)">
+        <div style="font-weight:600;font-size:16px;margin-bottom:2px">${d.title}</div>
+        <div style="font-size:12px;color:var(--text3)">配布先: ${d.targetId==='all'?'全員':players.find(p=>p.id===d.targetId)?.name||'指定'}</div>
       </div>
       <div style="flex:1;overflow-y:auto">
         ${d.fileType==='pdf'&&d.content?.startsWith('data:')
-          ?`<iframe src="${d.content}" style="width:100%;height:460px;border:none;border-radius:4px"></iframe>`
+          ?`<iframe src="${d.content}" style="width:100%;height:440px;border:none;border-radius:4px"></iframe>`
           :`<div style="font-size:15px;line-height:1.8;white-space:pre-wrap">${d.content||'<span style="color:var(--text3)">内容がありません</span>'}</div>`}
       </div>
     </div>`;
@@ -698,202 +714,160 @@ function addTL(){
   db.ref('rooms/'+roomId+'/timeline').push({time,content,player:document.getElementById('tl-player').value,tag:document.getElementById('tl-tag').value,ts:Date.now()});
   document.getElementById('tl-content').value='';
 }
-function renderTL(data){
-  const entries=Object.entries(data).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.time.localeCompare(b.time));
-  const el=document.getElementById('tl-list');
-  if(!entries.length){el.innerHTML='<div style="color:var(--text3);font-size:14px;font-style:italic">まだ記録がありません</div>';return;}
-  el.innerHTML=entries.map(e=>`
-    <div class="tl-item">
+function renderTL(){
+  const entries=Object.entries(tlData).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.time.localeCompare(b.time));
+  const html=entries.length===0?'<div style="color:var(--text3);font-size:14px;font-style:italic">まだ記録がありません</div>'
+    :entries.map(e=>`<div class="tl-item">
       <div class="tl-dot" style="background:${TAG_COLORS[e.tag]||'var(--text3)'}"></div>
-      <div class="card" style="padding:12px">
+      <div class="card" style="padding:11px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div style="flex:1">
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:3px;flex-wrap:wrap">
               <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--gold)">${e.time}</span>
               ${e.player?`<span style="font-size:12px;color:var(--text2)">@ ${e.player}</span>`:''}
               <span class="tag-pill" style="background:${TAG_COLORS[e.tag]||'var(--text3)'}18;color:${TAG_COLORS[e.tag]||'var(--text3)'}">${e.tag}</span>
             </div>
             <div style="font-size:14px;line-height:1.6">${e.content}</div>
           </div>
-          <button onclick="db.ref('rooms/${roomId}/timeline/${e.key}').remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;margin-left:8px;padding:2px">✕</button>
+          ${meIsGM?`<button onclick="db.ref('rooms/${roomId}/timeline/${e.key}').remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;margin-left:8px">✕</button>`:''}
         </div>
       </div>
     </div>`).join('');
+  const gEl=document.getElementById('tl-list');if(gEl)gEl.innerHTML=html;
+  const pEl=document.getElementById('pl-tl-list');if(pEl)pEl.innerHTML=html;
 }
 
 // ══ VOTE ══
-function addCandidate(){
-  const val=document.getElementById('cand-input').value.trim();
-  if(!val)return;
-  db.ref('rooms/'+roomId+'/vote/candidates').push({name:val,ts:Date.now()});
-  document.getElementById('cand-input').value='';
-}
-function deleteCandidate(key){db.ref('rooms/'+roomId+'/vote/candidates/'+key).remove();}
-function startVote(){
-  db.ref('rooms/'+roomId+'/vote').update({phase:'open',votes:{}});
-  hasVoted=false;myVote=null;
-}
+function addCand(){const v=document.getElementById('cand-inp').value.trim();if(!v)return;db.ref('rooms/'+roomId+'/vote/candidates').push({name:v,ts:Date.now()});document.getElementById('cand-inp').value='';}
+function deleteCand(key){db.ref('rooms/'+roomId+'/vote/candidates/'+key).remove();}
+function startVote(){db.ref('rooms/'+roomId+'/vote').update({phase:'open',votes:{}});hasVoted=false;myVote=null;}
 function stopVote(){db.ref('rooms/'+roomId+'/vote/phase').set('closed');}
 function revealVote(){db.ref('rooms/'+roomId+'/vote/phase').set('revealed');}
-function resetVote(){
-  db.ref('rooms/'+roomId+'/vote').set({phase:'idle',candidates:{}});
-  hasVoted=false;myVote=null;
-  document.getElementById('vote-overlay').style.display='none';
-}
+function resetVote(){db.ref('rooms/'+roomId+'/vote').set({phase:'idle',candidates:{}});hasVoted=false;myVote=null;votingFor=null;document.getElementById('vote-overlay').style.display='none';}
 
 function renderVoteGM(){
-  if(!isGMView)return;
+  if(!meIsGM)return;
   const phase=voteData.phase||'idle';
-  const cands=voteData.candidates||{};
+  const cands=Object.entries(voteData.candidates||{}).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
   const votes=voteData.votes||{};
-
-  // Status
+  const labels={idle:'投票未開始',open:'📨 受付中',closed:'✅ 締切済',revealed:'👁 結果公開中'};
   const statusEl=document.getElementById('vote-status-gm');
-  const labels={idle:'投票未開始',open:'📨 投票受付中',closed:'✅ 投票締切',revealed:'👁 結果公開中'};
   statusEl.textContent=labels[phase]||phase;
-  statusEl.style.color=phase==='open'?'var(--green)':phase==='revealed'?'var(--red)':'var(--text2)';
-
-  // Buttons
-  document.getElementById('start-vote-btn').disabled=phase==='open';
-  document.getElementById('stop-vote-btn').disabled=phase!=='open';
-  document.getElementById('reveal-vote-btn').disabled=phase!=='closed';
-
-  // Candidates list
-  const candList=document.getElementById('cand-list');
-  const candEntries=Object.entries(cands).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
-  candList.innerHTML=candEntries.length===0
+  statusEl.style.color=phase==='open'?'var(--green)':phase==='revealed'?'var(--gold)':'var(--text2)';
+  document.getElementById('btn-start-vote').disabled=phase==='open';
+  document.getElementById('btn-stop-vote').disabled=phase!=='open';
+  document.getElementById('btn-reveal-vote').disabled=phase!=='closed';
+  document.getElementById('cand-list').innerHTML=cands.length===0
     ?'<div style="color:var(--text3);font-size:13px;font-style:italic">候補者を追加してください</div>'
-    :candEntries.map(c=>`
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:6px;margin-bottom:6px;border:1px solid var(--border)">
-        <span style="font-size:14px;font-weight:600">${c.name}</span>
-        <button onclick="deleteCandidate('${c.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px" ${phase!=='idle'?'disabled':''}>✕</button>
-      </div>`).join('');
-
-  // Results
-  const resultsWrap=document.getElementById('gm-results');
+    :cands.map(c=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:6px;margin-bottom:6px;border:1px solid var(--border)">
+      <span style="font-size:14px;font-weight:600">${c.name}</span>
+      <button onclick="deleteCand('${c.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px" ${phase!=='idle'?'disabled':''}>✕</button>
+    </div>`).join('');
+  const resWrap=document.getElementById('gm-results');
   if(phase==='closed'||phase==='revealed'){
-    resultsWrap.style.display='block';
-    const tally={};candEntries.forEach(c=>{tally[c.key]=0;});
+    resWrap.style.display='block';
+    const tally={};cands.forEach(c=>{tally[c.key]=0;});
     Object.values(votes).forEach(v=>{if(tally[v]!==undefined)tally[v]++;});
-    const total=Object.values(tally).reduce((a,b)=>a+b,0)||1;
+    const total=Math.max(Object.values(tally).reduce((a,b)=>a+b,0),1);
     const maxV=Math.max(...Object.values(tally),0);
-    const sorted=candEntries.sort((a,b)=>tally[b.key]-tally[a.key]);
+    const sorted=[...cands].sort((a,b)=>tally[b.key]-tally[a.key]);
     document.getElementById('gm-results-inner').innerHTML=`
-      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">投票数: ${Object.keys(votes).length}票</div>
-      ${sorted.map(c=>`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:120px;font-weight:${tally[c.key]===maxV?700:400};color:${tally[c.key]===maxV?'var(--gold)':'var(--text)'};font-size:14px">${c.name}</div>
-          <div class="vote-bar-wrap"><div class="vote-bar" style="width:${(tally[c.key]/total)*100}%;background:${tally[c.key]===maxV?'var(--gold)':'var(--border2)'}"></div></div>
-          <div style="width:24px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text2)">${tally[c.key]}</div>
-        </div>`).join('')}
-      ${phase==='revealed'&&maxV>0?`<div style="margin-top:16px;padding:16px;background:var(--goldbg);border:1px solid var(--goldborder);border-radius:8px;text-align:center">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">最多得票</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">${Object.keys(votes).length}票 集計済</div>
+      ${sorted.map(c=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+        <div style="width:120px;font-weight:${tally[c.key]===maxV?700:400};color:${tally[c.key]===maxV?'var(--gold)':'var(--text)'};font-size:14px">${c.name}</div>
+        <div class="v-bar-wrap"><div class="v-bar" style="width:${(tally[c.key]/total)*100}%;background:${tally[c.key]===maxV?'var(--gold)':'var(--border2)'}"></div></div>
+        <div style="width:22px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text2)">${tally[c.key]}</div>
+      </div>`).join('')}
+      ${phase==='revealed'&&maxV>0?`<div style="margin-top:14px;padding:14px;background:var(--goldbg);border:1px solid var(--goldborder);border-radius:8px;text-align:center">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.1em;margin-bottom:5px">最多得票</div>
         <div style="font-size:22px;font-weight:700;color:var(--gold)">${sorted.filter(c=>tally[c.key]===maxV).map(c=>c.name).join(' / ')}</div>
       </div>`:''}`;
-  }else{resultsWrap.style.display='none';}
+  }else resWrap.style.display='none';
 }
 
-let votingFor=null;
 function renderVotePL(){
-  if(isGMView)return;
+  if(meIsGM)return;
   const phase=voteData.phase||'idle';
   const overlay=document.getElementById('vote-overlay');
-
+  const cands=Object.entries(voteData.candidates||{}).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
+  const votes=voteData.votes||{};
   if(phase==='open'&&!hasVoted){
     overlay.style.display='flex';
-    const cands=voteData.candidates||{};
-    const candEntries=Object.entries(cands).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
-    document.getElementById('vote-submitted-msg').style.display='none';
-    document.getElementById('vote-candidates-pl').style.display='block';
-    document.getElementById('submit-vote-btn').style.display='inline-flex';
-    document.getElementById('vote-candidates-pl').innerHTML=candEntries.map(c=>`
-      <div class="vote-candidate ${votingFor===c.key?'selected':''}" onclick="selectCandidate('${c.key}')">
-        <div style="font-size:16px;font-weight:600">${c.name}</div>
-      </div>`).join('');
-  } else if(phase==='revealed'){
+    document.getElementById('v-voted-msg').style.display='none';
+    document.getElementById('v-result-area').style.display='none';
+    document.getElementById('v-cands').style.display='block';
+    document.getElementById('v-submit-row').style.display='flex';
+    document.getElementById('v-cands').innerHTML=cands.map(c=>`
+      <div class="v-cand ${votingFor===c.key?'sel':''}" onclick="selCand('${c.key}',this)">${c.name}</div>`).join('');
+  }else if(phase==='revealed'){
     overlay.style.display='flex';
-    const cands=voteData.candidates||{};
-    const votes=voteData.votes||{};
-    const candEntries=Object.entries(cands).map(([k,v])=>({...v,key:k}));
-    const tally={};candEntries.forEach(c=>{tally[c.key]=0;});
+    document.getElementById('v-cands').style.display='none';
+    document.getElementById('v-submit-row').style.display='none';
+    document.getElementById('v-voted-msg').style.display='none';
+    document.getElementById('v-result-area').style.display='block';
+    const tally={};cands.forEach(c=>{tally[c.key]=0;});
     Object.values(votes).forEach(v=>{if(tally[v]!==undefined)tally[v]++;});
-    const total=Object.values(tally).reduce((a,b)=>a+b,0)||1;
+    const total=Math.max(Object.values(tally).reduce((a,b)=>a+b,0),1);
     const maxV=Math.max(...Object.values(tally),0);
-    const sorted=candEntries.sort((a,b)=>tally[b.key]-tally[a.key]);
-    document.getElementById('vote-submitted-msg').style.display='none';
-    document.getElementById('submit-vote-btn').style.display='none';
-    document.getElementById('vote-candidates-pl').style.display='block';
-    document.getElementById('vote-candidates-pl').innerHTML=`
-      <div style="margin-bottom:16px">
-        ${sorted.map(c=>`
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div style="width:120px;font-weight:${tally[c.key]===maxV?700:400};color:${tally[c.key]===maxV?'var(--gold)':'var(--text)'};font-size:14px">${c.name}</div>
-            <div class="vote-bar-wrap"><div class="vote-bar" style="width:${(tally[c.key]/total)*100}%;background:${tally[c.key]===maxV?'var(--gold)':'var(--border2)'}"></div></div>
-            <div style="width:24px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600">${tally[c.key]}</div>
-          </div>`).join('')}
-      </div>
-      ${maxV>0?`<div style="padding:16px;background:var(--goldbg);border:1px solid var(--goldborder);border-radius:8px;text-align:center">
-        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.1em;margin-bottom:6px">最多得票</div>
+    const sorted=[...cands].sort((a,b)=>tally[b.key]-tally[a.key]);
+    document.getElementById('v-result-area').innerHTML=`
+      ${sorted.map(c=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
+        <div style="width:120px;font-weight:${tally[c.key]===maxV?700:400};color:${tally[c.key]===maxV?'var(--gold)':'var(--text)'};font-size:15px">${c.name}</div>
+        <div class="v-bar-wrap"><div class="v-bar" style="width:${(tally[c.key]/total)*100}%;background:${tally[c.key]===maxV?'var(--gold)':'var(--border2)'}"></div></div>
+        <div style="width:22px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600">${tally[c.key]}</div>
+      </div>`).join('')}
+      ${maxV>0?`<div style="margin-top:14px;padding:14px;background:var(--goldbg);border:1px solid var(--goldborder);border-radius:8px;text-align:center">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.1em;margin-bottom:5px">最多得票</div>
         <div style="font-size:22px;font-weight:700;color:var(--gold)">${sorted.filter(c=>tally[c.key]===maxV).map(c=>c.name).join(' / ')}</div>
       </div>`:''}`;
-  } else if(phase==='idle'||phase==='closed'){
+  }else{
     overlay.style.display='none';
   }
-
-  // PL waiting area
-  const plPanel=document.getElementById('pl-vote-panel');
-  if(phase==='idle'){
-    plPanel.innerHTML='<div class="card" style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">🗳</div><div style="font-size:15px">GMが投票を開始するとここに投票画面が表示されます</div></div>';
-  }else if(phase==='open'){
-    plPanel.innerHTML=hasVoted
-      ?'<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;margin-bottom:10px">✅</div><div style="font-weight:600;color:var(--green);font-size:15px">投票済み</div><div style="font-size:13px;color:var(--text3);margin-top:6px">結果はGMが発表します</div></div>'
-      :'<div class="card" style="text-align:center;padding:40px"><div style="font-size:32px;margin-bottom:12px">🗳</div><div style="font-size:15px;font-weight:600">投票画面が表示されています</div></div>';
-  }else if(phase==='closed'){
-    plPanel.innerHTML='<div class="card" style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">⌛</div><div style="font-size:15px">投票が締め切られました。結果発表をお待ちください</div></div>';
-  }
 }
-
-function selectCandidate(key){
-  votingFor=key;
-  document.querySelectorAll('.vote-candidate').forEach(el=>el.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
-}
+function selCand(key,el){votingFor=key;document.querySelectorAll('.v-cand').forEach(e=>e.classList.remove('sel'));el.classList.add('sel');}
 function submitVote(){
   if(!votingFor)return;
-  const pid='anon_'+Math.random().toString(36).substr(2,6);
-  db.ref('rooms/'+roomId+'/vote/votes/'+pid).set(votingFor);
+  db.ref('rooms/'+roomId+'/vote/votes/'+meId+'_'+Date.now()).set(votingFor);
   hasVoted=true;votingFor=null;
-  document.getElementById('vote-candidates-pl').style.display='none';
-  document.getElementById('submit-vote-btn').style.display='none';
-  document.getElementById('vote-submitted-msg').style.display='block';
+  document.getElementById('v-cands').style.display='none';
+  document.getElementById('v-submit-row').style.display='none';
+  document.getElementById('v-voted-msg').style.display='block';
 }
 
 // ══ MEMO ══
-function addMemo(){
-  db.ref('rooms/'+roomId+'/memos').push({title:'メモ',content:'',ts:Date.now()});
+function addMemo(ctx){
+  const path=ctx==='gm'?'gm-memos':'pl-memos/'+meId;
+  db.ref('rooms/'+roomId+'/'+path).push({title:'メモ',content:'',ts:Date.now()});
 }
-function renderMemos(){
-  const memos=Object.entries(memoData).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
-  document.getElementById('memo-grid').innerHTML=memos.length===0
-    ?'<div style="color:var(--text3);font-size:14px;font-style:italic;grid-column:1/-1">右上の「＋メモを追加」でメモを作成してください</div>'
-    :memos.map(m=>`
-      <div class="memo-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <input value="${m.title}" oninput="updateMemoTitle('${m.key}',this.value)" style="border:none;background:transparent;font-weight:600;font-size:14px;color:var(--text);outline:none;width:calc(100% - 28px)">
-          <button onclick="db.ref('rooms/${roomId}/memos/${m.key}').remove()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
-        </div>
-        <div style="width:100%;height:1px;background:var(--border);margin-bottom:8px"></div>
-        <textarea oninput="updateMemoContent('${m.key}',this.value)" placeholder="ここに自由にメモ…">${m.content||''}</textarea>
-      </div>`).join('');
+function renderMemos(ctx){
+  const data=ctx==='gm'?gmMemoData:plMemoData;
+  const gridId=ctx==='gm'?'gm-memo-grid':'pl-memo-grid';
+  const el=document.getElementById(gridId);if(!el)return;
+  const memos=Object.entries(data).map(([k,v])=>({...v,key:k})).sort((a,b)=>a.ts-b.ts);
+  el.innerHTML=memos.length===0
+    ?'<div style="color:var(--text3);font-size:14px;font-style:italic;grid-column:1/-1">「＋ 追加」でメモを作成</div>'
+    :memos.map(m=>`<div class="memo-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+        <input value="${m.title||''}" oninput="saveMemoTitle('${ctx}','${m.key}',this.value)" style="border:none;background:transparent;font-weight:600;font-size:14px;color:var(--text);outline:none;width:calc(100% - 26px)">
+        <button onclick="deleteMemo('${ctx}','${m.key}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px">✕</button>
+      </div>
+      <div style="height:1px;background:var(--border);margin-bottom:7px"></div>
+      <textarea oninput="saveMemoContent('${ctx}','${m.key}',this.value)" placeholder="ここに自由にメモ…">${m.content||''}</textarea>
+    </div>`).join('');
 }
-let memoTimers={};
-function updateMemoTitle(key,val){
+function deleteMemo(ctx,key){
+  const path=ctx==='gm'?'gm-memos/'+key:'pl-memos/'+meId+'/'+key;
+  db.ref('rooms/'+roomId+'/'+path).remove();
+}
+function saveMemoTitle(ctx,key,val){
   clearTimeout(memoTimers[key+'t']);
-  memoTimers[key+'t']=setTimeout(()=>db.ref('rooms/'+roomId+'/memos/'+key+'/title').set(val),600);
+  const path=ctx==='gm'?'gm-memos/'+key+'/title':'pl-memos/'+meId+'/'+key+'/title';
+  memoTimers[key+'t']=setTimeout(()=>db.ref('rooms/'+roomId+'/'+path).set(val),500);
 }
-function updateMemoContent(key,val){
+function saveMemoContent(ctx,key,val){
   clearTimeout(memoTimers[key+'c']);
-  memoTimers[key+'c']=setTimeout(()=>db.ref('rooms/'+roomId+'/memos/'+key+'/content').set(val),600);
+  const path=ctx==='gm'?'gm-memos/'+key+'/content':'pl-memos/'+meId+'/'+key+'/content';
+  memoTimers[key+'c']=setTimeout(()=>db.ref('rooms/'+roomId+'/'+path).set(val),500);
 }
 </script>
 </body>
