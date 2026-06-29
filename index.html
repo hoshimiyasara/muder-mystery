@@ -494,25 +494,41 @@ function goToWho(code,data){
   roomId=code; players=data.players||[]; gmMode=data.gmMode; roomTitle=data.title;
   document.getElementById('who-room-code').textContent=code;
   document.getElementById('who-scenario').textContent=data.title;
-  // Build who list
+  showScreen('scr-who');
+  // Watch taken seats in realtime
+  db.ref('rooms/'+roomId+'/seats').on('value', snap=>{
+    const taken=snap.val()||{};
+    renderWhoList(taken);
+  });
+}
+
+function renderWhoList(taken){
   const list=document.getElementById('who-list');
   list.innerHTML=players.map((p,i)=>{
     const col=COLORS[i%COLORS.length];
     const isGMEntry=p.isGM||p.id==='gm';
-    return `<div class="who-card ${isGMEntry?'gm-card':''}" onclick="selectWho('${p.id}','${p.name}','${p.role||''}',${!!isGMEntry})">
-      <div class="who-avatar" style="background:${col}18;color:${col}">${isGMEntry?'👑':p.name.charAt(0)}</div>
-      <div>
+    const isTaken=!!taken[p.id];
+    const takenName=taken[p.id]||'';
+    return `<div class="who-card ${isGMEntry?'gm-card':''} ${isTaken?'taken':''}"
+      style="${isTaken?'opacity:.45;cursor:not-allowed;pointer-events:none;':''}"
+      onclick="${isTaken?'':'selectWho(\''+p.id+'\',\''+p.name+'\',\''+(p.role||'')+'\','+!!isGMEntry+')'}">
+      <div class="who-avatar" style="background:${col}18;color:${col}">${isTaken?'✓':isGMEntry?'👑':p.name.charAt(0)}</div>
+      <div style="flex:1">
         <div style="font-weight:700;font-size:16px">${p.name}</div>
         ${p.role&&!isGMEntry?`<div style="font-size:12px;color:var(--text3)">${p.role}</div>`:''}
         ${isGMEntry?`<div style="font-size:12px;color:var(--gold);font-weight:600">ゲームマスター</div>`:''}
+        ${isTaken?`<div style="font-size:12px;color:var(--text3);font-weight:600">参加済み</div>`:''}
       </div>
     </div>`;
   }).join('');
-  showScreen('scr-who');
 }
 
 function selectWho(id,name,role,isGM){
   meId=id; meName=name; meRole=role; meIsGM=isGM;
+  // Mark seat as taken
+  db.ref('rooms/'+roomId+'/seats/'+id).set(name);
+  // Stop watching who list
+  db.ref('rooms/'+roomId+'/seats').off();
   enterApp();
 }
 
@@ -537,6 +553,7 @@ function enterApp(){
 
 function leaveSession(){
   if(timerInterval)clearInterval(timerInterval);
+  if(roomId&&meId) db.ref('rooms/'+roomId+'/seats/'+meId).remove();
   roomId=null;meId=null;meName=null;meIsGM=false;
   document.getElementById('vote-overlay').style.display='none';
   showScreen('scr-top');
