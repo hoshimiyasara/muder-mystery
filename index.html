@@ -586,7 +586,9 @@ function renderWhoList(taken){
 function selectWho(id,name,role,isGM){
   meId=id; meName=name; meRole=role; meIsGM=isGM;
   // Mark seat as taken
-  db.ref('rooms/'+roomId+'/seats/'+id).set(name);
+  const seatRef = db.ref('rooms/'+roomId+'/seats/'+id);
+seatRef.onDisconnect().remove();
+seatRef.set(name);
   // Stop watching who list
   db.ref('rooms/'+roomId+'/seats').off();
   enterApp();
